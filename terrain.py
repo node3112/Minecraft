@@ -272,7 +272,7 @@ class TerrainGeneratorSimple(TerrainGeneratorBase):
         self.world = world
         self.seed = G.SEED  #seed
         self.rand = random.Random(seed)
-        perm = range(255)
+        perm = list(range(255))
         self.rand.shuffle(perm)
         self.noise = SimplexNoise(permutation_table=perm).noise2
         #self.noise = PerlinNoise(seed).noise

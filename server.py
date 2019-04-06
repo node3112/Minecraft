@@ -17,7 +17,7 @@ import globals as G
 from savingsystem import save_sector_to_string, save_blocks, save_world, load_player, save_player
 from world_server import WorldServer
 import blocks
-from commands import CommandParser, COMMAND_HANDLED, CommandException, COMMAND_ERROR_COLOR
+from text_commands import CommandParser, COMMAND_HANDLED, CommandException, COMMAND_ERROR_COLOR
 from utils import sectorize, make_string_packet
 from mod import load_modules
 
