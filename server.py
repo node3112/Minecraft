@@ -292,6 +292,9 @@ if __name__ == '__main__':
             print("Unknown command '%s'." % cmd, helptext)
     while len(threading.enumerate()) > 1:
         threads = threading.enumerate()
+        for t in threads:
+            if hasattr(t, 'do_kill_pydev_thread'):
+                t.do_kill_pydev_thread()
         threads.remove(threading.current_thread())
         print("Waiting on these threads to close:", threads)
         time.sleep(1)
