@@ -33,7 +33,7 @@ def get_item(item_or_block_id):
     """
     if not isinstance(item_or_block_id, BlockID):
         item_or_block_id = BlockID(str(item_or_block_id))
-    if item_or_block_id.main >= G.ITEM_ID_MIN:
+    if item_or_block_id.is_item():
         return G.ITEMS_DIR[item_or_block_id]
     else:
         return G.BLOCKS_DIR[item_or_block_id]

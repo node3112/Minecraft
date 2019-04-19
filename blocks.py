@@ -166,10 +166,10 @@ class BlockID:
         return self.main != 0
 
     def is_item(self):
-        return self.main > 255
+        return self.main >= G.ITEM_ID_MIN
 
     def filename(self):
-        if self.icon_name != None: return ["textures", "blocks" if self.main < G.ITEM_ID_MIN else "items", str(self.icon_name) + ".png"]
+        if self.icon_name != None: return ["textures", "items" if self.is_item() else "blocks", str(self.icon_name) + ".png"]
         if self.sub == 0: return ["textures", "icons", str(self.main) + ".png"]
         return ["textures", "icons", '%d.%d.png' % (self.main, self.sub)]
 

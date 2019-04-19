@@ -432,9 +432,7 @@ class GameController(Controller):
     def put_block(self, previous): # FIXME - Better name...
         current_block = self.item_list.get_current_block()
         if current_block is not None:
-            # if current block is an item,
-            # call its on_right_click() method to handle this event
-            if current_block.id >= G.ITEM_ID_MIN:
+            if current_block.id.is_item():
                 if current_block.on_right_click(self.world, self.player):
                     self.item_list.get_current_block_item().change_amount(-1)
                     self.item_list.update_health()
