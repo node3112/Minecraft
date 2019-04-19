@@ -226,7 +226,9 @@ def start_server(internal=False):
     if internal:
         localip = "localhost"
     else:
-        localip = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
+        localip = s.getsockname()[0]
     server = Server((localip, 1486), ServerPlayer)
     G.SERVER = server
     server_thread = threading.Thread(target=server.serve_forever)
