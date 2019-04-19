@@ -814,7 +814,13 @@ class TextWidget(Control):
     """
     Variation of this example: http://www.pyglet.org/doc/programming_guide/text_input.py
     """
-    def __init__(self, parent, text, x, y, width, height=None, multi_line=False,
+    batch: pyglet.graphics.Batch
+    x: int
+    y: int
+    width: int
+    height: int
+
+    def __init__(self, parent, text, x: int, y: int, width: int, height: int = None, multi_line=False,
                  font_size=12,
                  font_name=G.DEFAULT_FONT,
                  text_color=(0, 0, 0, 255),
@@ -839,8 +845,10 @@ class TextWidget(Control):
         if blank_text:
             self.clear()
         self.padding = 10
+        self.x = x
+        self.y = y
+        self.width = width
         self.height = height or (font.ascent - font.descent) + self.padding
-        self.x, self.y, self.width = x, y, width
         self.multi_line = multi_line
         self.background_color = background_color
 

@@ -17,7 +17,7 @@ __all__ = (
 )
 
 # radius of the sun (central angle)
-SUN_RADIUS = pi / 6
+SUN_RADIUS: float = pi / 6
 
 class Skydome:
     def __init__(self, filename, brightness=1.0, size=1.0, direction=0):

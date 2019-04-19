@@ -22,7 +22,7 @@ from utils import sectorize, make_string_packet
 from mod import load_modules
 
 #This class is effectively a serverside "Player" object
-class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+class ServerPlayer(socketserver.BaseRequestHandler):
     inventory = b"\0"*(4*40)  # Currently, is serialized to be 4 bytes * (27 inv + 9 quickbar + 4 armor) = 160 bytes
     command_parser = CommandParser()
 
@@ -224,10 +224,10 @@ class Server(socketserver.ThreadingTCPServer):
 
 def start_server(internal=False):
     if internal:
-        server = Server(("localhost", 1486), ThreadedTCPRequestHandler)
+        localip = "localhost"
     else:
         localip = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
-        server = Server((localip, 1486), ThreadedTCPRequestHandler)
+    server = Server((localip, 1486), ServerPlayer)
     G.SERVER = server
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()

@@ -113,7 +113,7 @@ class WorldServer(dict):
                 return True
         return False
 
-    def get_exposed_sector_cached(self, sector):
+    def get_exposed_sector_cached(self, sector: (int, int, int)) -> bytes:
         """
         Cached. Returns a 512 length string of 0's and 1's if blocks are exposed
         """
@@ -121,7 +121,7 @@ class WorldServer(dict):
             self.exposed_cache[sector] = self.get_exposed_sector(sector)
         return self.exposed_cache[sector]
 
-    def get_exposed_sector(self, sector):
+    def get_exposed_sector(self, sector: (int, int, int)) -> bytes:
         """ Returns a 512 length string of 0's and 1's if blocks are exposed """
         cx,cy,cz = sector_to_blockpos(sector)
         #Most ridiculous list comprehension ever, but this is 25% faster than using appends

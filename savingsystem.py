@@ -34,18 +34,22 @@ null2 = struct.pack("xx") #Two \0's
 null1024 = null2*512      #1024 \0's
 air = G.BLOCKS_DIR[(0,0)]
 
-def sector_to_filename(secpos):
+def sector_to_filename(secpos: (int, int, int)) -> str:
     x,y,z = secpos
     return "%i.%i.%i.pyr" % (x//4, y//4, z//4)
-def region_to_filename(region):
+
+def region_to_filename(region: (int, int, int)) -> str:
     return "%i.%i.%i.pyr" % region
-def sector_to_region(secpos):
+
+def sector_to_region(secpos: (int, int, int)) -> (int, int, int):
     x,y,z = secpos
     return (x//4, y//4, z//4)
-def sector_to_offset(secpos):
+
+def sector_to_offset(secpos: (int, int, int)) -> int:
     x,y,z = secpos
     return ((x % 4)*16 + (y % 4)*4 + (z % 4)) * 1024
-def sector_to_blockpos(secpos):
+
+def sector_to_blockpos(secpos: (int, int, int)) -> (int, int, int):
     x,y,z = secpos
     return x*8, y*8, z*8
 
@@ -63,7 +67,13 @@ def connect_db(world=None):
         return db
     return sqlite3.connect(os.path.join(world_dir, G.DB_NAME)) 
 
-def save_sector_to_bytes(blocks, secpos) -> bytes:
+
+def save_sector_to_bytes(blocks, secpos: (int, int, int)) -> bytes:
+    """
+
+    :type blocks: world_server.WorldServer
+    :type secpos: (int,int,int)
+    """
     cx, cy, cz = sector_to_blockpos(secpos)
     fstr = b""
     for x in range(cx, cx+8):
@@ -78,7 +88,12 @@ def save_sector_to_bytes(blocks, secpos) -> bytes:
                     fstr += null2
     return fstr
 
-def save_world(server, world):
+def save_world(server, world: str):
+    """
+
+    :type server: server.Server
+    :type world: str
+    """
     #Non block related data
     #save = (4,window.player, window.time_of_day, G.SEED)
     #pickle.dump(save, open(os.path.join(game_dir, world, "save.pkl"), "wb"))
@@ -87,7 +102,7 @@ def save_world(server, world):
 
     save_blocks(server.world, world)
 
-def save_blocks(blocks, world):
+def save_blocks(blocks, world: str):
     #blocks and sectors (window.world and window.world.sectors)
     #Saves individual sectors in region files (4x4x4 sectors)
 
@@ -102,7 +117,12 @@ def save_blocks(blocks, world):
             f.seek(sector_to_offset(secpos)) #Seek to the sector offset
             f.write(save_sector_to_bytes(blocks, secpos))
 
-def save_player(player, world):
+def save_player(player, world: str):
+    """
+
+    :type player: server.ServerPlayer
+    :type world: str
+    """
     db = connect_db(world)
     cur = db.cursor()
     cur.execute('insert or replace into players(version, pos_x, pos_y, pos_z, mom_x, mom_y, mom_z, inventory, name) ' + \
@@ -130,7 +150,7 @@ def sector_exists(sector, world=None):
     if world is None: world = "world"
     return os.path.lexists(os.path.join(G.game_dir, world, sector_to_filename(sector)))
 
-def load_region(world, world_name=None, region=None, sector=None):
+def load_region(world, world_name: str = None, region: (int, int, int) = None, sector: (int, int, int) = None):
     if world_name is None: world_name = "world"
     sectors = world.sectors
     blocks = world
@@ -171,7 +191,7 @@ def load_region(world, world_name=None, region=None, sector=None):
                                                 print("load_region: Invalid Block", e)
                                         sectors[(x//SECTOR_SIZE, y//SECTOR_SIZE, z//SECTOR_SIZE)].append(position)
 
-def load_player(player, world):
+def load_player(player, world: str):
     db = connect_db(world)
     cur = db.cursor()
     cur.execute("select * from players where name='%s'" % player.username)
