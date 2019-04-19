@@ -290,16 +290,14 @@ class World(dict):
 
     def process_queue(self, dt):
         stoptime = time() + G.QUEUE_PROCESS_SPEED
-        while time() < stoptime:
+        while (self.sector_queue or self.sector_packets or self.urgent_queue or self.lazy_queue) and time() < stoptime:
             #Process as much of the queues as we can
             if self.sector_queue:
                 self.dequeue_sector()
-            elif self.sector_packets:
+            if self.sector_packets:
                 self.packetreceiver.dequeue_packet()
-            elif self.urgent_queue or self.lazy_queue:
+            if self.urgent_queue or self.lazy_queue:
                 self.dequeue()
-            else:
-                break
 
     def process_entire_queue(self):
         while self.urgent_queue or self.lazy_queue:
