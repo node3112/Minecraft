@@ -38,7 +38,7 @@ class World(dict):
         self.shown = {}
         self._shown = {}
         self.sectors = defaultdict(list)
-        self.before_set = set()
+        self.sectors_shown = dict()
         self.urgent_queue = deque()
         self.lazy_queue = deque()
         self.sector_queue = OrderedDict()
@@ -233,8 +233,7 @@ class World(dict):
             del self.sectors[sector]
 
     def change_sectors(self, after):
-        before_set = self.before_set
-        after_set = set()
+        new_sectors_shown = dict()
         pad = G.VISIBLE_SECTORS_RADIUS
         x, y, z = after
         for distance in xrange(0, pad + 1):
@@ -245,13 +244,12 @@ class World(dict):
                     for dy in xrange(-4, 4):
                         if dx ** 2 + dy ** 2 + dz ** 2 > (pad + 1) ** 2:
                             continue
-                        after_set.add((x + dx, y + dy, z + dz))
-        #for sector in (after_set - before_set):
-           # self.show_sector(sector)
+                        new_sectors_shown[(x + dx, y + dy, z + dz)] = True
         #Queue the sectors to be shown, instead of rendering them in real time
-        for sector in (after_set - before_set):
-            self.enqueue_sector(True, sector)
-        self.before_set = after_set
+        for sector in new_sectors_shown.keys():
+            if sector not in self.sectors_shown:
+                self.enqueue_sector(True, sector)
+        self.sectors_shown = new_sectors_shown
 
     def enqueue_sector(self, state, sector): #State=True to show, False to hide
         self.sector_queue[sector] = state
