@@ -56,7 +56,7 @@ class ServerPlayer(socketserver.BaseRequestHandler):
         except socket.error as e:
             if self.server._stop.isSet():
                 return  # Socket error while shutting down doesn't matter
-            if e[0] in (10053, 10054):
+            if e.errno in (32, 10053, 10054):
                 print("Client %s %s crashed." % (self.username, self.client_address))
             else:
                 raise e
@@ -245,14 +245,34 @@ if __name__ == '__main__':
     load_modules(server=True)
 
     server, server_thread = start_server()
-    print(('Server loop running in thread: ' + server_thread.name))
 
     ip, port = server.server_address
     print("Listening on",ip,port)
 
+
+    def shutdown_server():
+        server._stop.set()
+        G.main_timer.stop()
+        print("Disconnecting clients...")
+        for player_connection in list(server.players.values()):
+            try:
+                player_connection.request.shutdown(SHUT_RDWR)
+                player_connection.request.close()
+            except socket.error:
+                pass
+        print("Shutting down socket...")
+        server.shutdown()
+        print("Saving...")
+        save_world(server, "world")
+        print("Goodbye")
+
     helptext = "Available commands: " + ", ".join(["say", "stop", "save"])
     while 1:
-        args = input().strip().split(" ")
+        try:
+            args = input().strip().split(" ")
+        except KeyboardInterrupt:
+            shutdown_server()
+            break
         cmd = args.pop(0)
         if cmd == "say":
             msg = "Server: %s" % " ".join(args)
@@ -266,20 +286,7 @@ if __name__ == '__main__':
             save_world(server, "world")
             print("Done saving")
         elif cmd == "stop":
-            server._stop.set()
-            G.main_timer.stop()
-            print("Disconnecting clients...")
-            for address in server.players:
-                try:
-                    server.players[address].request.shutdown(SHUT_RDWR)
-                    server.players[address].request.close()
-                except socket.error:
-                    pass
-            print("Shutting down socket...")
-            server.shutdown()
-            print("Saving...")
-            save_world(server, "world")
-            print("Goodbye")
+            shutdown_server()
             break
         else:
             print("Unknown command '%s'." % cmd, helptext)
