@@ -190,7 +190,7 @@ HUD_ENABLED = True
 DEBUG_TEXT_ENABLED = True
 
 # Sound
-EFFECT_VOLUME = 1
+EFFECT_VOLUME = 0.0 # disabled due to... segfaults?
 
 # Tool types
 WOODEN_TOOL, STONE_TOOL, IRON_TOOL, DIAMOND_TOOL, GOLDEN_TOOL = range(5)
