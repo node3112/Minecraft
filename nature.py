@@ -15,7 +15,7 @@ from blocks import *
 #
 
 
-class SmallPlant(object):
+class SmallPlant:
     block = None
     grows_on = grass_block, dirt_block
 
@@ -24,7 +24,7 @@ class SmallPlant(object):
         world.add_block(position, cls.block, sync=sync)
 
 
-class Trunk(object):
+class Trunk:
     block = None
     height_range = 4, 8
     grows_on = ()
@@ -49,7 +49,7 @@ class Trunk(object):
             world.add_block(*item, sync=sync)
 
 
-class Tree(object):
+class Tree:
     trunk_block = None
     leaf_block = None
     trunk_height_range = 4, 8

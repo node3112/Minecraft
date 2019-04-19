@@ -5,7 +5,7 @@ import cython
 #cython: cdivision=True
 
 
-cdef class FastRandom(object):
+cdef class FastRandom:
     cdef public seed
 
     cpdef int randint(self)

@@ -44,7 +44,7 @@ def init_3d_list(x_size, y_size, z_size):
         xblks[x] = yblks
     return xblks
 
-class Chunk(object):
+class Chunk:
     def __init__(self, position, x_size=CHUNK_X_SIZE, y_size=CHUNK_Y_SIZE, z_size=CHUNK_Z_SIZE):
         self.x_pos, self.y_pos, self.z_pos = position
         self.x_size = x_size
@@ -70,7 +70,7 @@ class Chunk(object):
 SAMPLE_RATE_HOR = 4
 SAMPLE_RATE_VER = 4
 
-class TerrainGeneratorBase(object):
+class TerrainGeneratorBase:
     def __init__(self, seed):
         self.seed = seed
 

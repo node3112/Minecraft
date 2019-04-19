@@ -48,7 +48,7 @@ class UnknownCommandException(CommandException):
         self.message = "$$rUnknown command. Try /help for help."
 
 
-class CommandParser(object):
+class CommandParser:
     """
     Entry point for parsing and executing game commands.
     """
@@ -101,7 +101,7 @@ class CommandParser(object):
             return COMMAND_NOT_HANDLED
 
 
-class Command(object):
+class Command:
     command = None
     help_text = None
 

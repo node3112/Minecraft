@@ -50,7 +50,7 @@ def vec(*args):
 
 
 # fast math algorithms
-class FastRandom(object):
+class FastRandom:
     def __init__(self, seed):
         self.seed = seed
 

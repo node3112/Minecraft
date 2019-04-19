@@ -38,7 +38,7 @@ def get_item(item_or_block_id):
         return G.BLOCKS_DIR[item_or_block_id]
 
 
-class Item(object):
+class Item:
     id = None
     max_stack_size = 0
     amount_label_color = 255, 255, 255, 255
@@ -61,7 +61,7 @@ class Item(object):
     def __repr__(self):
         return self.name
 
-class ItemStack(object):
+class ItemStack:
     def __init__(self, type = 0, amount = 1, durability = -1):
         if amount < 1:
             amount = 1

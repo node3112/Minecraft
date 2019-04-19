@@ -19,7 +19,7 @@ __all__ = (
 )
 
 
-class Entity(object):
+class Entity:
     """
     Base class for players, mobs, TNT and so on.
     """
@@ -53,7 +53,7 @@ MSG_PICKUP, \
 MSG_REDSTONE_ACTIVATE, MSG_REDSTONE_DEACTIVATE, \
     = list(range(3))
 
-class EntityManager(object):
+class EntityManager:
     def __init__(self):
         self.last_id = 0
         self.entities = {}

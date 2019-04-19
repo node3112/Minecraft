@@ -15,7 +15,7 @@ __all__ = (
 )
 
 
-class Inventory(object):
+class Inventory:
     sort_mode = 0
 
     def __init__(self, slot_count = 27):

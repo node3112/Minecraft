@@ -63,7 +63,7 @@ _F3 = 1.0 / 3.0
 _G3 = 1.0 / 6.0
 
 
-class BaseNoise(object):
+class BaseNoise:
     """Noise abstract base class"""
 
     def __init__(self, period=None, permutation_table=None):

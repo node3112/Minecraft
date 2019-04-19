@@ -39,7 +39,7 @@ __all__ = (
 )
 
 
-class Controller(object):
+class Controller:
     def __init__(self, window):
         self.window = window
         self.current_view = None

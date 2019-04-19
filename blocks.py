@@ -103,7 +103,7 @@ class TextureGroupIndividual(pyglet.graphics.Group):
             glDisable(self.texture.target)
 
 
-class BlockID(object):
+class BlockID:
     """
     Datatype for Block and Item IDs
 
@@ -171,7 +171,7 @@ class BlockID(object):
         return ["textures", "icons", '%d.%d.png' % (self.main, self.sub)]
 
 
-class Block(object):
+class Block:
     id = None  # Original minecraft id (also called data value).
                # Verify on http://www.minecraftwiki.net/wiki/Data_values
                # when creating a new "official" block.
@@ -361,7 +361,7 @@ class Block(object):
     def can_place_on(self, block_id):
         return False
 
-class BlockColorizer(object):
+class BlockColorizer:
         def __init__(self, filename):
             self.color_data = G.texture_pack_list.selected_texture_pack.load_texture(['misc', filename])
             # if the texture is not available, don't colorize it
@@ -1725,7 +1725,7 @@ CRACK_LEVELS = 10
 
 
 # not a real block, used to store crack texture data
-class CrackTextureBlock(object):
+class CrackTextureBlock:
     def __init__(self):
         self.crack_level = CRACK_LEVELS
         self.texture_data = []

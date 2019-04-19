@@ -31,7 +31,7 @@ __all__ = (
 )
 
 
-class Rectangle(object):
+class Rectangle:
     def __init__(self, x, y, width, height):
         self.position = x, y
         self.size = width, height

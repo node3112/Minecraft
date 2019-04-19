@@ -17,7 +17,7 @@ __all__ = (
 )
 
 
-class TexturePackImplementation(object):
+class TexturePackImplementation:
     __texture_pack_id = None
     __texture_pack_file_name = ""
     __first_description_line = ""

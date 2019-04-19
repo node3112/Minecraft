@@ -27,7 +27,7 @@ __all__ = (
     'View', 'MainMenuView', 'OptionsView', 'ControlsView', 'TexturesView', 'MultiplayerView'
 )
 
-class Layout(object):
+class Layout:
     def __init__(self, x, y):
         self.components = []
         self._position = x, y
