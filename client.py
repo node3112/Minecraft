@@ -32,7 +32,7 @@ class PacketReceiver(Thread):
         except socket.error as e:
             if e[0] in (10053, 10054):
                 #TODO: GUI tell the client they were disconnected
-                print "Disconnected from server."
+                print("Disconnected from server.")
             else:
                 raise e
         self.controller.back_to_main_menu.set()
@@ -45,7 +45,7 @@ class PacketReceiver(Thread):
         while 1:
             resp = self.sock.recv(16384)
             if self._stop.isSet() or not resp:
-                print "Client PacketReceiver:",self._stop.isSet() and "Shutting down" or "We've been disconnected by the server"
+                print("Client PacketReceiver:",self._stop.isSet() and "Shutting down" or "We've been disconnected by the server")
                 self.sock.shutdown(SHUT_RDWR)
                 return
 
@@ -81,9 +81,9 @@ class PacketReceiver(Thread):
             cx, cy, cz = sector_to_blockpos(secpos)
             fpos = 12
             exposed_pos = fpos + 1024
-            for x in xrange(cx, cx+8):
-                for y in xrange(cy, cy+8):
-                    for z in xrange(cz, cz+8):
+            for x in range(cx, cx+8):
+                for y in range(cy, cy+8):
+                    for z in range(cz, cz+8):
                         read = packet[fpos:fpos+2]
                         fpos += 2
                         unpacked = structuchar2.unpack(read)
@@ -122,7 +122,7 @@ class PacketReceiver(Thread):
             player = self.controller.player
             caret = 0
             for inventory in (player.quick_slots.slots, player.inventory.slots, player.armor.slots):
-                for i in xrange(len(inventory)):
+                for i in range(len(inventory)):
                     id_main, id_sub, amount = struct.unpack("HBB", packet[caret:caret+4])
                     caret += 4
                     if id_main == 0: continue

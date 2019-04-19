@@ -3,7 +3,7 @@
 # Imports, sorted alphabetically.
 
 # Python packages
-from ConfigParser import NoSectionError, NoOptionError
+from configparser import NoSectionError, NoOptionError
 import argparse
 import os
 import random
@@ -118,7 +118,7 @@ def main(options):
     if G.LANGUAGE != 'default':
         reload(sys)
         sys.setdefaultencoding('utf8')
-        gettext.install(True, localedir=None, unicode=1)
+        gettext.install(True, localedir=None, str=1)
         gettext.find(G.APP_NAME.lower(), 'locale')
         gettext.textdomain(G.APP_NAME.lower())
         gettext.bind_textdomain_codeset(G.APP_NAME.lower(), 'utf8')
@@ -138,9 +138,9 @@ def main(options):
         G.CLIENT.stop()
         
     if G.SERVER:
-        print 'Saving...'
+        print('Saving...')
         save_world(G.SERVER, "world")
-        print 'Shutting down internal server...'
+        print('Shutting down internal server...')
         G.main_timer.stop()
         G.SERVER._stop.set()
         G.SERVER.shutdown()

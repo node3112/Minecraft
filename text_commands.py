@@ -85,9 +85,9 @@ class CommandParser(object):
             # ...but filter out "None" arguments. If commands
             # want optional arguments, they should use keyword arguments
             # in their execute methods.
-            args = filter(lambda a: a is not None, match.groups())
+            args = [a for a in match.groups() if a is not None]
             kwargs = {}
-            for key, value in match.groupdict().iteritems():
+            for key, value in match.groupdict().items():
                 if value is not None:
                     kwargs[key] = value
             ret = command.execute(*args, **kwargs)

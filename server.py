@@ -8,7 +8,7 @@ import timer
 try:  # Python 3
     import socketserver
 except ImportError:  # Python 2
-    import SocketServer as socketserver
+    import socketserver as socketserver
 import threading
 # Third-party packages
 
@@ -37,21 +37,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         info = info.encode('utf-8')
         self.sendpacket(len(info) + 4, "\5" + info + struct.pack("BBBB", *color))
     def broadcast(self, txt):
-        for player in self.server.players.itervalues():
+        for player in self.server.players.values():
             player.sendchat(txt)
     def sendpos(self, pos_bytes, mom_bytes):
         self.sendpacket(38, "\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
 
     def lookup_player(self, playername):
         # find player by name
-        for player in self.server.players.values():
+        for player in list(self.server.players.values()):
             if player.username == playername:
                 return player
         return None
 
     def handle(self):
         self.username = str(self.client_address)
-        print "Client connecting...", self.client_address
+        print("Client connecting...", self.client_address)
         self.server.players[self.client_address] = self
         self.server.player_ids.append(self)
         self.id = len(self.server.player_ids) - 1
@@ -61,7 +61,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if self.server._stop.isSet():
                 return  # Socket error while shutting down doesn't matter
             if e[0] in (10053, 10054):
-                print "Client %s %s crashed." % (self.username, self.client_address)
+                print("Client %s %s crashed." % (self.username, self.client_address))
             else:
                 raise e
 
@@ -119,8 +119,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                         # Not a command, send the chat to all players
                         for address in players:
                             players[address].sendchat(txt)
-                        print txt  # May as well let console see it too
-                except CommandException, e:
+                        print(txt)  # May as well let console see it too
+                except CommandException as e:
                     self.sendchat(str(e), COMMAND_ERROR_COLOR)
             elif packettype == 6:  # Player Inventory Update
                 self.inventory = self.request.recv(4*40)
@@ -148,21 +148,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.position = None
                 load_player(self, "world")
 
-                for player in self.server.players.itervalues():
+                for player in self.server.players.values():
                     player.sendchat("$$y%s has connected." % self.username)
-                print "%s's username is %s" % (self.client_address, self.username)
+                print("%s's username is %s" % (self.client_address, self.username))
 
                 position = (0,self.server.world.terraingen.get_height(0,0)+2,0)
                 if self.position is None: self.position = position  # New player, set initial position
 
                 # Send list of current players to the newcomer
-                for player in self.server.players.itervalues():
+                for player in self.server.players.values():
                     if player is self: continue
                     name = player.username.encode('utf-8')
                     self.sendpacket(2 + len(name), '\7' + struct.pack("H", player.id) + name)
                 # Send the newcomer's name to all current players
                 name = self.username.encode('utf-8')
-                for player in self.server.players.itervalues():
+                for player in self.server.players.values():
                     if player is self: continue
                     player.sendpacket(2 + len(name), '\7' + struct.pack("H", self.id) + name)
 
@@ -179,15 +179,15 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.sendpacket(12 + len(seed_packet), struct.pack("B",255) + struct.pack("iii", *position) + seed_packet)
                 self.sendpacket(4*40, "\6" + self.inventory)
             else:
-                print "Received unknown packettype", packettype
+                print("Received unknown packettype", packettype)
     def finish(self):
-        print "Client disconnected,", self.client_address, self.username
+        print("Client disconnected,", self.client_address, self.username)
         try: del self.server.players[self.client_address]
         except KeyError: pass
-        for player in self.server.players.itervalues():
+        for player in self.server.players.values():
             player.sendchat("%s has disconnected." % self.username)
         # Send user list
-        for player in self.server.players.itervalues():
+        for player in self.server.players.values():
             player.sendpacket(2 + 1, '\7' + struct.pack("H", self.id) + '\0')
         save_player(self, "world")
 
@@ -207,17 +207,17 @@ class Server(socketserver.ThreadingTCPServer):
 
     def show_block(self, position, block):
         blockid = block.id
-        for player in self.players.itervalues():
+        for player in self.players.values():
             #TODO: Only if they're in range
             player.sendpacket(14, "\3" + struct.pack("iiiBB", *(position+(blockid.main, blockid.sub))))
 
     def hide_block(self, position):
-        for player in self.players.itervalues():
+        for player in self.players.values():
             #TODO: Only if they're in range
             player.sendpacket(12, "\4" + struct.pack("iii", *position))
 
     def update_tile_entity(self, position, value):
-        for player in self.players.itervalues():
+        for player in self.players.values():
             player.sendpacket(12 + len(value), "\x0A" + struct.pack("iii", *position) + value)
 
 
@@ -249,46 +249,46 @@ if __name__ == '__main__':
     load_modules(server=True)
 
     server, server_thread = start_server()
-    print('Server loop running in thread: ' + server_thread.name)
+    print(('Server loop running in thread: ' + server_thread.name))
 
     ip, port = server.server_address
-    print "Listening on",ip,port
+    print("Listening on",ip,port)
 
     helptext = "Available commands: " + ", ".join(["say", "stop", "save"])
     while 1:
-        args = raw_input().replace(chr(13), "").split(" ")  # On some systems CR is appended, gotta remove that
+        args = input().replace(chr(13), "").split(" ")  # On some systems CR is appended, gotta remove that
         cmd = args.pop(0)
         if cmd == "say":
             msg = "Server: %s" % " ".join(args)
-            print msg
-            for player in server.players.itervalues():
+            print(msg)
+            for player in server.players.values():
                 player.sendchat(msg, color=(180,180,180,255))
         elif cmd == "help":
-            print helptext
+            print(helptext)
         elif cmd == "save":
-            print "Saving..."
+            print("Saving...")
             save_world(server, "world")
-            print "Done saving"
+            print("Done saving")
         elif cmd == "stop":
             server._stop.set()
             G.main_timer.stop()
-            print "Disconnecting clients..."
+            print("Disconnecting clients...")
             for address in server.players:
                 try:
                     server.players[address].request.shutdown(SHUT_RDWR)
                     server.players[address].request.close()
                 except socket.error:
                     pass
-            print "Shutting down socket..."
+            print("Shutting down socket...")
             server.shutdown()
-            print "Saving..."
+            print("Saving...")
             save_world(server, "world")
-            print "Goodbye"
+            print("Goodbye")
             break
         else:
-            print "Unknown command '%s'." % cmd, helptext
+            print("Unknown command '%s'." % cmd, helptext)
     while len(threading.enumerate()) > 1:
         threads = threading.enumerate()
         threads.remove(threading.current_thread())
-        print "Waiting on these threads to close:", threads
+        print("Waiting on these threads to close:", threads)
         time.sleep(1)

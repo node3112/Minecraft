@@ -34,11 +34,11 @@ CHUNK_Y_SIZE = 256
 def init_3d_list(x_size, y_size, z_size):
     # initialize block list
     xblks = {}
-    for x in xrange(x_size):
+    for x in range(x_size):
         yblks = {}
-        for y in xrange(y_size):
+        for y in range(y_size):
             zblks = {}
-            for z in xrange(z_size):
+            for z in range(z_size):
                 zblks[z] = None
             yblks[y] = zblks
         xblks[x] = yblks
@@ -308,7 +308,7 @@ class TerrainGeneratorSimple(TerrainGeneratorBase):
         self.nether = (nether_block, soulsand_block, netherore_block, air_block)
         #self.nether = ((nether_block,) * 80 + (soulsand_block,) * 15 + (netherore_block,) * 5 + (air_block,) * 10)
 
-        self.weights = [self.PERSISTENCE ** (-self.H * n) for n in xrange(self.OCTAVES)]
+        self.weights = [self.PERSISTENCE ** (-self.H * n) for n in range(self.OCTAVES)]
     def _clamp(self, a):
         if a > 1:
             return 0.9999 #So int rounds down properly and keeps it within the right sector
@@ -432,8 +432,8 @@ class TerrainGeneratorSimple(TerrainGeneratorBase):
                 midlevel_ores = self.midlevel_ores
                 lowlevel_ores = self.lowlevel_ores
 
-            for x in xrange(bx, bx + 8):
-                for z in xrange(bz, bz + 8):
+            for x in range(bx, bx + 8):
+                for z in range(bz, bz + 8):
                     if by < height_base:
                         # For sectors outside of the height_range, no point checking the heightmap
                         y = height_base
@@ -503,7 +503,7 @@ class TerrainGeneratorSimple(TerrainGeneratorBase):
 
                             y -= 3
 
-                    for yy in xrange(by, y):
+                    for yy in range(by, y):
                         # ores and filler...
                         if yy >= 32:
                             blockset = highlevel_ores

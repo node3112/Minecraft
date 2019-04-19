@@ -148,7 +148,7 @@ class World(dict):
         dx, dy, dz = vector
         dx, dy, dz = dx / m, dy / m, dz / m
         previous = ()
-        for _ in xrange(max_distance * m):
+        for _ in range(max_distance * m):
             key = normalize((x, y, z))
             if key != previous and key in self and (self[key].density != 0.5 or hitwater):
                 return key, previous
@@ -237,12 +237,12 @@ class World(dict):
         after_set = set()
         pad = G.VISIBLE_SECTORS_RADIUS
         x, y, z = after
-        for distance in xrange(0, pad + 1):
-            for dx in xrange(-distance, distance + 1):
-                for dz in xrange(-distance, distance + 1):
+        for distance in range(0, pad + 1):
+            for dx in range(-distance, distance + 1):
+                for dz in range(-distance, distance + 1):
                     if abs(dx) != distance and abs(dz) != distance:
                         continue
-                    for dy in xrange(-4, 4):
+                    for dy in range(-4, 4):
                         if dx ** 2 + dy ** 2 + dz ** 2 > (pad + 1) ** 2:
                             continue
                         after_set.add((x + dx, y + dy, z + dz))

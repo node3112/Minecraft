@@ -70,7 +70,7 @@ def init_font(filename, fontname):
 
 
 def get_block_icon(block, icon_size, world):
-    print block.id.filename()
+    print(block.id.filename())
     block_icon = G.texture_pack_list.selected_texture_pack.load_texture(block.id.filename()) \
         or (block.group or world.group).texture.get_region(
             int(block.texture_data[2 * 8] * G.TILESET_SIZE) * icon_size,
@@ -182,7 +182,7 @@ def make_packet(obj):
     elif type(obj) == str:
         return make_string_packet(obj)
     else:
-        print('make_packet: unsupported type: ' + str(type(obj)))
+        print(('make_packet: unsupported type: ' + str(type(obj))))
         return None
 
 def extract_packet(packet):
@@ -202,7 +202,7 @@ def type_tag(t):
 
 def make_nbt_from_dict(d):
     packet = ''
-    for key in d.keys():
+    for key in list(d.keys()):
         packet += make_string_packet(key) + type_tag(type(d[key])) + make_packet(d[key])
     return packet
 

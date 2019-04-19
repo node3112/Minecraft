@@ -805,7 +805,7 @@ class InventorySelector(AbstractInventory):
 def __run_iterator_fix(self, index):
     while index >= self.end and index > self.start:
         # condition has special case for 0-length run (fixes issue 471)
-        self.start, self.end, self.value = self.next()
+        self.start, self.end, self.value = next(self)
     return self.value
 from pyglet.text.runlist import RunIterator
 RunIterator.__getitem__ = __run_iterator_fix

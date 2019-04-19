@@ -460,7 +460,7 @@ class OptionsView(MenuView):
         hl.add(sb)
 
         def change_sound_volume(pos):
-            print G.EFFECT_VOLUME
+            print(G.EFFECT_VOLUME)
             G.EFFECT_VOLUME = float(float(pos) / 100)
         sb = self.Scrollbar(x=0, y=0, width=300, height=40, sb_width=20, sb_height=40, caption="Sound", pos=int(G.EFFECT_VOLUME * 100), on_pos_change=change_sound_volume)
         hl.add(sb)
@@ -580,7 +580,7 @@ class TexturesView(MenuView):
                 self.current_toggled = button
                 G.config.set("Graphics", "texture_pack", button.id)
                 G.TEXTURE_PACK = button.id
-                for block in G.BLOCKS_DIR.values():
+                for block in list(G.BLOCKS_DIR.values()):
                     block.update_texture() #Reload textures
 
                 G.save_config()

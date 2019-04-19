@@ -3,7 +3,7 @@
 # Imports, sorted alphabetically.
 
 # Future imports
-from __future__ import unicode_literals
+
 from math import floor
 
 # Python packages
@@ -121,7 +121,7 @@ class BlockID(object):
     def __init__(self, main, sub=0, icon_name=None):
         if isinstance(main, tuple):
             self.main, self.sub = main
-        elif isinstance(main, basestring):
+        elif isinstance(main, str):
             # Allow "35", "35.0", or "35,0"
             spl = main.split(".") if "." in main else main.split(",") if "," in main else (main, 0)
             if len(spl) == 2:
@@ -158,7 +158,7 @@ class BlockID(object):
         if isinstance(other, BlockID):
             return cmp(self.main, other.main) or cmp(self.sub, other.sub)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Checks whether it is an AirBlock."""
         return self.main != 0
 
@@ -1717,7 +1717,7 @@ class BedBlock(Block):
         return (block_id != 0)
 
     def set_metadata(self, metadata):
-        print 'metadata: ', metadata
+        print('metadata: ', metadata)
         if self.sub_id_as_metadata:
             self.id.sub = metadata
 
