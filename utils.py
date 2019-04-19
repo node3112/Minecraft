@@ -17,7 +17,7 @@ from custom_types import iVector, fVector
 
 __all__ = (
     'load_image', 'image_sprite', 'hidden_image_sprite', 'vec', 'FastRandom',
-    'init_resources', 'init_font', 'get_block_icon',
+    'logstream', 'init_resources', 'init_font', 'get_block_icon',
     'FACES', 'FACES_WITH_DIAGONALS', 'normalize_float', 'normalize',
     'sectorize', 'TextureGroup', 'make_nbt_from_dict', 'extract_nbt'
 )
@@ -61,6 +61,16 @@ class FastRandom:
     def randint(self) -> int:
         self.seed = (214013 * self.seed + 2531011)
         return (self.seed >> 16) & 0x7FFF
+
+
+def logstream(io_stream, logger_callback):
+    """A threading helper, which runs the callback (ie. print) for each line in the io_stream"""
+    while True:
+        out = io_stream.readline()
+        if out:
+            logger_callback(out.rstrip())
+        else:
+            break
 
 
 def init_resources():

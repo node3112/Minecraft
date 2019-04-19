@@ -2,6 +2,8 @@
 
 # Python packages
 import socket
+import subprocess
+import sys
 import time
 import datetime
 from functools import partial
@@ -32,7 +34,6 @@ from utils import vec, sectorize, normalize, load_image, image_sprite
 from views import MainMenuView, OptionsView, ControlsView, TexturesView, MultiplayerView
 from world import World
 from biome import BiomeGenerator
-from server import start_server
 
 __all__ = (
     'Controller', 'MainMenuController', 'GameController',
@@ -113,6 +114,8 @@ class MainMenuController(Controller):
         self.switch_controller_class(GameController)
 
 class GameController(Controller):
+    local_server_process: subprocess.Popen
+    local_server_stdout_thread: threading.Thread
     def __init__(self, window):
         super(GameController, self).__init__(window)
         self.sector, self.highlighted_block, self.crack, self.last_key = (None,) * 4
@@ -227,7 +230,23 @@ class GameController(Controller):
                 print('Starting internal server...')
                 # TODO: create world menu
                 G.SAVE_FILENAME = "world"
-                start_server(internal=True)
+                if sys.platform == "win32" and os.path.isfile("server.exe"):
+                    local_server_executable = ["server.exe"]
+                else:
+                    local_server_executable = [sys.executable, '-u', 'server.py']
+                self.local_server_process = subprocess.Popen(local_server_executable,
+                                                           stdin=subprocess.PIPE,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.STDOUT,
+                                                           universal_newlines=True)
+                for line in self.local_server_process.stdout:
+                    print("Server:", line, end="")
+                    if "Listening on" in line:
+                        break
+                self.local_server_stdout_thread = threading.Thread(
+                    target=utils.logstream, args=(self.local_server_process.stdout, lambda s: print("Server:", s))
+                )
+                self.local_server_stdout_thread.start()
                 sock = socket.socket()
                 sock.connect(("localhost", 1486))
             except socket.error as e:
@@ -687,6 +706,12 @@ class GameController(Controller):
     def on_close(self):
         G.save_config()
         self.world.packetreceiver.stop()  # Disconnect from the server so the process can close
+        if hasattr(self, 'local_server_process'):
+            print("Stopping Local Server...")
+            self.local_server_process.stdin.write("stop")
+            self.local_server_process.stdin.close()
+            self.local_server_stdout_thread.join()
+            print("Local Server stopped.")
 
     def show_map(self):
         print("map called...")

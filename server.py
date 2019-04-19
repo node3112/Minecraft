@@ -221,9 +221,7 @@ def start_server(internal=False):
     if internal:
         localip = "localhost"
     else:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
-        localip = s.getsockname()[0]
+        localip = "0.0.0.0"
     server = Server((localip, 1486), ServerPlayer)
     G.SERVER = server
     server_thread = threading.Thread(target=server.serve_forever)
@@ -254,7 +252,7 @@ if __name__ == '__main__':
 
     helptext = "Available commands: " + ", ".join(["say", "stop", "save"])
     while 1:
-        args = input().replace(chr(13), "").split(" ")  # On some systems CR is appended, gotta remove that
+        args = input().strip().split(" ")
         cmd = args.pop(0)
         if cmd == "say":
             msg = "Server: %s" % " ".join(args)
