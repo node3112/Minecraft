@@ -236,7 +236,7 @@ class TerrainGenerator(TerrainGeneratorBase):
         mountains = self.mount_density(x, y, z)
         hills = self.hill_density(x, y, z)
 
-        flatten = self._clamp(((CHUNK_Y_SIZE - 16) - y) / int(CHUNK_Y_SIZE * 0.10))
+        flatten = self._clamp(((CHUNK_Y_SIZE - 16) - y) // int(CHUNK_Y_SIZE * 0.10))
 
         return -y + (((32.0 + height * 32.0) * self._clamp(river + 0.25) * self._clamp(ocean + 0.25)) + mountains * 1024.0 + hills * 128.0) * flatten
 

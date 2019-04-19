@@ -14,7 +14,7 @@ import threading
 
 # Modules from this project
 import globals as G
-from savingsystem import save_sector_to_string, save_blocks, save_world, load_player, save_player
+from savingsystem import save_sector_to_bytes, save_blocks, save_world, load_player, save_player
 from world_server import WorldServer
 import blocks
 from text_commands import CommandParser, COMMAND_HANDLED, CommandException, COMMAND_ERROR_COLOR
@@ -23,24 +23,25 @@ from mod import load_modules
 
 #This class is effectively a serverside "Player" object
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
-    inventory = "\0"*(4*40)  # Currently, is serialized to be 4 bytes * (27 inv + 9 quickbar + 4 armor) = 160 bytes
+    inventory = b"\0"*(4*40)  # Currently, is serialized to be 4 bytes * (27 inv + 9 quickbar + 4 armor) = 160 bytes
     command_parser = CommandParser()
 
     operator = False
 
-    def sendpacket(self, size, packet):
-        self.request.sendall(struct.pack("i", 5+size)+packet)
-    def sendchat(self, txt, color=(255,255,255,255)):
+    def sendpacket(self, size: int, packet: bytes):
+        self.request.sendall(struct.pack("i", 5 + size) + packet)
+
+    def sendchat(self, txt: str, color=(255,255,255,255)):
         txt = txt.encode('utf-8')
-        self.sendpacket(len(txt) + 4, "\5" + txt + struct.pack("BBBB", *color))
-    def sendinfo(self, info, color=(255,255,255,255)):
+        self.sendpacket(len(txt) + 4, b"\5" + txt + struct.pack("BBBB", *color))
+    def sendinfo(self, info: str, color=(255,255,255,255)):
         info = info.encode('utf-8')
-        self.sendpacket(len(info) + 4, "\5" + info + struct.pack("BBBB", *color))
-    def broadcast(self, txt):
+        self.sendpacket(len(info) + 4, b"\5" + info + struct.pack("BBBB", *color))
+    def broadcast(self, txt: str):
         for player in self.server.players.values():
             player.sendchat(txt)
     def sendpos(self, pos_bytes, mom_bytes):
-        self.sendpacket(38, "\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
+        self.sendpacket(38, b"\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
 
     def lookup_player(self, playername):
         # find player by name
@@ -81,10 +82,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
                 if not world.sectors[sector]:
                     #Empty sector, send packet 2
-                    self.sendpacket(12, "\2" + struct.pack("iii",*sector))
+                    self.sendpacket(12, b"\2" + struct.pack("iii",*sector))
                 else:
-                    msg = struct.pack("iii",*sector) + save_sector_to_string(world, sector) + world.get_exposed_sector(sector)
-                    self.sendpacket(len(msg), "\1" + msg)
+                    msg = struct.pack("iii",*sector) + save_sector_to_bytes(world, sector) + world.get_exposed_sector(sector)
+                    self.sendpacket(len(msg), b"\1" + msg)
             elif packettype == 3:  # Add block
                 positionbytes = self.request.recv(4*3)
                 blockbytes = self.request.recv(2)
@@ -96,7 +97,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
                 for address in players:
                     if address is self.client_address: continue  # He told us, we don't need to tell him
-                    players[address].sendpacket(14, "\3" + positionbytes + blockbytes)
+                    players[address].sendpacket(14, b"\3" + positionbytes + blockbytes)
             elif packettype == 4:  # Remove block
                 positionbytes = self.request.recv(4*3)
 
@@ -105,7 +106,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
                 for address in players:
                     if address is self.client_address: continue  # He told us, we don't need to tell him
-                    players[address].sendpacket(12, "\4" + positionbytes)
+                    players[address].sendpacket(12, b"\4" + positionbytes)
             elif packettype == 5:  # Receive chat text
                 txtlen = struct.unpack("i", self.request.recv(4))[0]
                 raw_txt = self.request.recv(txtlen).decode('utf-8')
@@ -132,12 +133,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 for address in players:
                     if address is self.client_address: continue  # He told us, we don't need to tell him
                     #TODO: Only send to nearby players
-                    players[address].sendpacket(38, "\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
+                    players[address].sendpacket(38, b"\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
             elif packettype == 9:  # Player Jump
                 for address in players:
                     if address is self.client_address: continue  # He told us, we don't need to tell him
                     #TODO: Only send to nearby players
-                    players[address].sendpacket(2, "\x09" + struct.pack("H", self.id))
+                    players[address].sendpacket(2, b"\x09" + struct.pack("H", self.id))
             elif packettype == 10: # Update Tile Entity
                 block_pos = struct.unpack("iii", self.request.recv(4*3))
                 ent_size = struct.unpack("i", self.request.recv(4))[0]
@@ -159,25 +160,25 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 for player in self.server.players.values():
                     if player is self: continue
                     name = player.username.encode('utf-8')
-                    self.sendpacket(2 + len(name), '\7' + struct.pack("H", player.id) + name)
+                    self.sendpacket(2 + len(name), b'\7' + struct.pack("H", player.id) + name)
                 # Send the newcomer's name to all current players
                 name = self.username.encode('utf-8')
                 for player in self.server.players.values():
                     if player is self: continue
-                    player.sendpacket(2 + len(name), '\7' + struct.pack("H", self.id) + name)
+                    player.sendpacket(2 + len(name), b'\7' + struct.pack("H", self.id) + name)
 
                 #Send them the sector under their feet first so they don't fall
                 sector = sectorize(position)
                 if sector not in world.sectors:
                     with world.server_lock:
                         world.open_sector(sector)
-                msg = struct.pack("iii",*sector) + save_sector_to_string(world, sector) + world.get_exposed_sector(sector)
-                self.sendpacket(len(msg), "\1" + msg)
+                msg = struct.pack("iii",*sector) + save_sector_to_bytes(world, sector) + world.get_exposed_sector(sector)
+                self.sendpacket(len(msg), b"\1" + msg)
 
                 #Send them their spawn position and world seed(for client side biome generator)
                 seed_packet = make_string_packet(G.SEED)
                 self.sendpacket(12 + len(seed_packet), struct.pack("B",255) + struct.pack("iii", *position) + seed_packet)
-                self.sendpacket(4*40, "\6" + self.inventory)
+                self.sendpacket(4*40, b"\6" + self.inventory)
             else:
                 print("Received unknown packettype", packettype)
     def finish(self):
@@ -188,7 +189,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             player.sendchat("%s has disconnected." % self.username)
         # Send user list
         for player in self.server.players.values():
-            player.sendpacket(2 + 1, '\7' + struct.pack("H", self.id) + '\0')
+            player.sendpacket(2 + 1, b'\7' + struct.pack("H", self.id) + b'\0')
         save_player(self, "world")
 
 
@@ -209,16 +210,16 @@ class Server(socketserver.ThreadingTCPServer):
         blockid = block.id
         for player in self.players.values():
             #TODO: Only if they're in range
-            player.sendpacket(14, "\3" + struct.pack("iiiBB", *(position+(blockid.main, blockid.sub))))
+            player.sendpacket(14, b"\3" + struct.pack("iiiBB", *(position+(blockid.main, blockid.sub))))
 
     def hide_block(self, position):
         for player in self.players.values():
             #TODO: Only if they're in range
-            player.sendpacket(12, "\4" + struct.pack("iii", *position))
+            player.sendpacket(12, b"\4" + struct.pack("iii", *position))
 
-    def update_tile_entity(self, position, value):
+    def update_tile_entity(self, position, value: bytes):
         for player in self.players.values():
-            player.sendpacket(12 + len(value), "\x0A" + struct.pack("iii", *position) + value)
+            player.sendpacket(12 + len(value), b"\x0A" + struct.pack("iii", *position) + value)
 
 
 def start_server(internal=False):

@@ -36,12 +36,12 @@ air = G.BLOCKS_DIR[(0,0)]
 
 def sector_to_filename(secpos):
     x,y,z = secpos
-    return "%i.%i.%i.pyr" % (x/4, y/4, z/4)
+    return "%i.%i.%i.pyr" % (x//4, y//4, z//4)
 def region_to_filename(region):
     return "%i.%i.%i.pyr" % region
 def sector_to_region(secpos):
     x,y,z = secpos
-    return (x/4, y/4, z/4)
+    return (x//4, y//4, z//4)
 def sector_to_offset(secpos):
     x,y,z = secpos
     return ((x % 4)*16 + (y % 4)*4 + (z % 4)) * 1024
@@ -58,14 +58,14 @@ def connect_db(world=None):
         db = sqlite3.connect(os.path.join(world_dir, G.DB_NAME))
         db.execute('create table players (id integer primary key autoincrement, version integer, ' + \
             'pos_x real, pos_y real, pos_z real, mom_x real, mom_y real, mom_z real, ' + \
-            'inventory varchar(160), name varchar(30) UNIQUE)');
+            'inventory blob, name varchar(30) UNIQUE)');
         db.commit()
         return db
     return sqlite3.connect(os.path.join(world_dir, G.DB_NAME)) 
 
-def save_sector_to_string(blocks, secpos):
+def save_sector_to_bytes(blocks, secpos) -> bytes:
     cx, cy, cz = sector_to_blockpos(secpos)
-    fstr = ""
+    fstr = b""
     for x in range(cx, cx+8):
         for y in range(cy, cy+8):
             for z in range(cz, cz+8):
@@ -100,7 +100,7 @@ def save_blocks(blocks, world):
                 f.truncate(64*1024) #Preallocate the file to be 64kb
         with open(file, "rb+") as f: #Load up the region file
             f.seek(sector_to_offset(secpos)) #Seek to the sector offset
-            f.write(save_sector_to_string(blocks, secpos))
+            f.write(save_sector_to_bytes(blocks, secpos))
 
 def save_player(player, world):
     db = connect_db(world)
@@ -169,7 +169,7 @@ def load_region(world, world_name=None, region=None, sector=None):
                                                     blocks[position].set_metadata(full_id[-1])
                                             except KeyError as e:
                                                 print("load_region: Invalid Block", e)
-                                        sectors[(x/SECTOR_SIZE, y/SECTOR_SIZE, z/SECTOR_SIZE)].append(position)
+                                        sectors[(x//SECTOR_SIZE, y//SECTOR_SIZE, z//SECTOR_SIZE)].append(position)
 
 def load_player(player, world):
     db = connect_db(world)
@@ -179,11 +179,11 @@ def load_player(player, world):
     if data is None:    # no such entry, set initial value
         player.position = None
         player.momentum = (0, 0, 0)
-        player.inventory = ''.join((struct.pack("HBB", 0, 0, 0)) * 40)
+        player.inventory = (struct.pack("HBB", 0, 0, 0)) * 40
     else:
         player.position = list(data[i] for i in range(2, 5))
         player.momentum = list(data[i] for i in range(5, 8))
-        player.inventory = str(data[8])
+        player.inventory = data[8]
     cur.close()
     db.close()
 

@@ -139,9 +139,9 @@ def normalize(position):
 
 def sectorize(position):
     x, y, z = normalize(position)
-    x, y, z = (x / G.SECTOR_SIZE,
-               y / G.SECTOR_SIZE,
-               z / G.SECTOR_SIZE)
+    x, y, z = (x // G.SECTOR_SIZE,
+               y // G.SECTOR_SIZE,
+               z // G.SECTOR_SIZE)
     return x, y, z
 
 
@@ -167,12 +167,12 @@ def extract_int_packet(packet):
     return packet[4:], struct.unpack('i', packet[:4])[0]
 
 def make_string_packet(s):
-    return struct.pack('i', len(s)) + s
+    return struct.pack('i', len(s)) + s.encode('utf-8')
 
 def extract_string_packet(packet):
     strlen = struct.unpack('i', packet[:4])[0]
     packet = packet[4:]
-    s = packet [:strlen]
+    s = packet[:strlen].decode('utf-8')
     packet = packet[strlen:]
     return packet, s
 
@@ -201,7 +201,7 @@ def type_tag(t):
     return struct.pack('B', tag)
 
 def make_nbt_from_dict(d):
-    packet = ''
+    packet = b''
     for key in list(d.keys()):
         packet += make_string_packet(key) + type_tag(type(d[key])) + make_packet(d[key])
     return packet

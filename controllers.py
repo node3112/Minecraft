@@ -311,7 +311,7 @@ class GameController(Controller):
         self.text_input.push_handlers(on_toggled=self.on_text_input_toggled, key_released=self.text_input_callback)
         self.chat_box = TextWidget(self.window, '',
                                    0, self.text_input.y + self.text_input.height + 50,
-                                   self.window.width / 2, height=min(300, self.window.height / 3),
+                                   self.window.width // 2, height=min(300, self.window.height // 3),
                                    visible=False, multi_line=True, readonly=True,
                                    font_name=G.CHAT_FONT,
                                    text_color=(255, 255, 255, 255),
@@ -516,7 +516,7 @@ class GameController(Controller):
             self.label.y = height - 10
         self.text_input.resize(x=0, y=0, width=self.window.width)
         self.chat_box.resize(x=0, y=self.text_input.y + self.text_input.height + 50,
-                             width=self.window.width / 2, height=min(300, self.window.height/3))
+                             width=self.window.width // 2, height=min(300, self.window.height // 3))
         #self.debug_text.resize(0, self.window.height - 300,
         #                           500, 300)
 
@@ -572,11 +572,11 @@ class GameController(Controller):
     def show_cracks(self, hit_block, vertex_data):
         if self.block_damage:  # also show the cracks
             crack_level = int(CRACK_LEVELS * self.block_damage
-                              / hit_block.hardness)  # range: [0, CRACK_LEVELS[
+                              // hit_block.hardness)  # range: [0, CRACK_LEVELS[
             if crack_level >= CRACK_LEVELS:
                 return
             texture_data = crack_textures.texture_data[crack_level]
-            count = len(texture_data) / 2
+            count = len(texture_data) // 2
             if self.crack:
                 self.crack.delete()
             self.crack = self.crack_batch.add(count, GL_QUADS, crack_textures.group,

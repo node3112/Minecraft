@@ -68,7 +68,7 @@ class Tree:
         treetop = y + height
 
         # Leaves generation
-        d = height / 3 + 1
+        d = height // 3 + 1
         for xl in range(x - d, x + d):
             dx = abs(xl - x)
             for yl in range(treetop - d, treetop + d):

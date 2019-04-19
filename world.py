@@ -176,7 +176,6 @@ class World(dict):
 
     def _show_block(self, position, block):
         # only show exposed faces
-        index = 0
         vertex_data = list(block.get_vertices(*position))
         texture_data = list(block.texture_data)
         color_data = None
@@ -184,7 +183,6 @@ class World(dict):
             temp = self.biome_generator.get_temperature(position[0], position[-1])
             humidity = self.biome_generator.get_humidity(position[0], position[-1])
             color_data =  block.get_color(temp, humidity)
-        count = len(texture_data) / 2
         # FIXME: Do something of what follows.
         #for neighbor in self.neighbors_iterator(position):
         #    if neighbor in self:
@@ -198,7 +196,7 @@ class World(dict):
         #    else:
         #       index += 1
 
-        count = len(texture_data) / 2
+        count = len(texture_data) // 2
         # create vertex list
         batch = self.transparency_batch if block.transparent else self.batch
         if color_data is not None:

@@ -148,15 +148,18 @@ class BlockID:
     def __hash__(self):
         return hash((self.main, self.sub))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if isinstance(other, tuple):
-            return cmp((self.main, self.sub), other)
+            return (self.main, self.sub) == other
         if isinstance(other, float):
-            return cmp(float(repr(self.main)), other)
+            return float(repr(self.main)) == other
         if isinstance(other, int):
-            return cmp(self.main, other)
+            return self.main == other
         if isinstance(other, BlockID):
-            return cmp(self.main, other.main) or cmp(self.sub, other.sub)
+            return self.main == other.main and self.sub == other.sub
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def __bool__(self):
         """Checks whether it is an AirBlock."""
@@ -378,7 +381,7 @@ class BlockColorizer:
             if self.color_data is None:
                 return 1, 1, 1
             pos = int(floor(humidity * 255) * BYTE_PER_LINE + 3 * floor((temperature) * 255))
-            return float(ord(self.color_data[pos])) / 255, float(ord(self.color_data[pos + 1])) / 255, float(ord(self.color_data[pos + 2])) / 255
+            return float(self.color_data[pos]) / 255, float(self.color_data[pos + 1]) / 255, float(self.color_data[pos + 2]) / 255
 
 class AirBlock(Block):
     max_stack_size = 0
@@ -1393,7 +1396,7 @@ class CropBlock(Block):
     def fertilize(self):
         if self.growth_stage == self.max_growth_stage:
             return False
-        G.CLIENT.update_tile_entity(self.entity.position, make_nbt_from_dict({'action'.encode(): 'fertilize'.encode()}))
+        G.CLIENT.update_tile_entity(self.entity.position, make_nbt_from_dict({'action': 'fertilize'}))
         return True
         
     def update_tile_entity(self, value):

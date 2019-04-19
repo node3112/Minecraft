@@ -39,7 +39,7 @@ class PacketReceiver(Thread):
 
     # loop() is run once in its own thread
     def loop(self):
-        packetcache, packetsize = "", 0
+        packetcache, packetsize = b"", 0
 
         append_to_sector_packets = self.world.sector_packets.append
         while 1:
@@ -52,20 +52,20 @@ class PacketReceiver(Thread):
             # Sometimes data is sent in multiple pieces, just because sock.recv returned data doesn't mean its complete
             # So we write the datalength in the beginning of all messages, and don't look at the packet until we have enough data
             packetcache += resp
-            if not packetsize:
+            if not packetsize and len(packetcache) >= 4:
                 packetsize = struct.unpack("i", packetcache[:4])[0]
 
             # Sometimes we get multiple packets in a single burst, so loop through packetcache until we lack the data
             while packetsize and len(packetcache) >= packetsize:
                 #Once we've obtained the whole packet
-                packetid = struct.unpack("B",packetcache[4])[0]  # Server Packet Type
+                packetid = struct.unpack_from("B",packetcache, 4)[0]  # Server Packet Type
                 packet = packetcache[5:packetsize]
 
                 with self.lock:
                     append_to_sector_packets((packetid, packet))
 
                 packetcache = packetcache[packetsize:]  # Cut off the part we just read
-                packetsize = struct.unpack("i", packetcache[:4])[0] if packetcache else 0  # Get the next packet's size
+                packetsize = struct.unpack("i", packetcache[:4])[0] if len(packetcache) >= 4 else 0  # Get the next packet's size
 
 
     #=== The following functions are run by the Main Thread ===#
@@ -100,7 +100,7 @@ class PacketReceiver(Thread):
                                     blocks[position] = type(main_blk)()
                                     blocks[position].set_metadata(unpacked[-1])
                             sector.append(position)
-                            if packet[exposed_pos] is "1":
+                            if packet[exposed_pos:exposed_pos+1] == b"1":
                                 blocks.show_block(position)
                         exposed_pos += 1
             if secpos in self.world.sector_queue:
@@ -129,7 +129,7 @@ class PacketReceiver(Thread):
                     durability = -1
                     if id_main >= G.ITEM_ID_MIN and (id_main, id_sub) not in G.ITEMS_DIR:
                         #The subid must be durability
-                        durability = id_sub * G.ITEMS_DIR[(id_main, 0)].durability / 255
+                        durability = id_sub * G.ITEMS_DIR[(id_main, 0)].durability // 255
                         id_sub = 0
                     inventory[i] = ItemStack(type=BlockID(id_main, id_sub), amount=amount, durability=durability)
             self.controller.item_list.update_items()
@@ -161,31 +161,31 @@ class PacketReceiver(Thread):
     # Helper Functions for sending data to the Server
 
     def request_sector(self, sector):
-        self.sock.sendall("\1"+struct.pack("iii", *sector))
+        self.sock.sendall(b"\1"+struct.pack("iii", *sector))
     def add_block(self, position, block):
-        self.sock.sendall("\3"+struct.pack("iiiBB", *(position+(block.id.main, block.id.sub))))
+        self.sock.sendall(b"\3"+struct.pack("iiiBB", *(position+(block.id.main, block.id.sub))))
     def remove_block(self, position):
-        self.sock.sendall("\4"+struct.pack("iii", *position))
+        self.sock.sendall(b"\4"+struct.pack("iii", *position))
     def send_chat(self, msg):
         msg = msg.encode('utf-8')
-        self.sock.sendall("\5"+struct.pack("i", len(msg))+msg)
+        self.sock.sendall(b"\5"+struct.pack("i", len(msg))+msg)
     def request_spawnpos(self):
         name = G.USERNAME.encode('utf-8')
         self.sock.sendall(struct.pack("B", 255)+struct.pack("i",len(name)) + name)
     def send_player_inventory(self):
-        packet = ""
+        packet = b""
         for item in (self.controller.player.quick_slots.slots + self.controller.player.inventory.slots + self.controller.player.armor.slots):
             if item:
-                packet += struct.pack("HBB", item.type.main, item.type.sub if item.max_durability == -1 else item.durability * 255 / item.max_durability, item.amount)
+                packet += struct.pack("HBB", item.type.main, item.type.sub if item.max_durability == -1 else item.durability * 255 // item.max_durability, item.amount)
             else:
-                packet += "\0\0\0\0"
-        self.sock.sendall("\6"+packet)
+                packet += b"\0\0\0\0"
+        self.sock.sendall(b"\6"+packet)
     def send_movement(self, momentum, position):
-        self.sock.sendall("\x08"+struct.pack("fff", *momentum) + struct.pack("ddd", *position))
+        self.sock.sendall(b"\x08"+struct.pack("fff", *momentum) + struct.pack("ddd", *position))
     def send_jump(self):
-        self.sock.sendall("\x09")
+        self.sock.sendall(b"\x09")
     def update_tile_entity(self, position, value):
-        self.sock.sendall("\x0A" + struct.pack("iii", *position) + struct.pack("i", len(value)) + value)
+        self.sock.sendall(b"\x0A" + struct.pack("iii", *position) + struct.pack("i", len(value)) + value)
 
 
     def stop(self):

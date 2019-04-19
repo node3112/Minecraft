@@ -93,7 +93,7 @@ class Window(pyglet.window.Window):
     def on_resize(self, width, height):
         if self.reticle:
             self.reticle.delete()
-        x, y = width / 2, height / 2
+        x, y = width // 2, height // 2
         n = 10
         self.reticle = pyglet.graphics.vertex_list(
             4,
@@ -113,7 +113,7 @@ def main(options):
         setattr(G.LAUNCH_OPTIONS, name, val)
 
     if options.fast:
-        G.TIME_RATE /= 20
+        G.TIME_RATE //= 20
 
     if G.LANGUAGE != 'default':
         reload(sys)
