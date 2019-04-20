@@ -31,8 +31,6 @@ class WorldServer(dict):
     }
     def __init__(self, server):
         super(WorldServer, self).__init__()
-        import savingsystem #This module doesn't like being imported at modulescope
-        self.savingsystem = savingsystem
         if not os.path.lexists(os.path.join(G.game_dir, "world", "players")):
             os.makedirs(os.path.join(G.game_dir, "world", "players"))
 
@@ -191,12 +189,12 @@ class WorldServer(dict):
 
     def open_sector(self, sector: iVector):
         #The sector is not in memory, load or create it
-        if self.savingsystem.sector_exists(sector):
+        if savingsystem.sector_exists(sector):
             #If its on disk, load it
-            self.savingsystem.load_region(self, sector=sector)
+            savingsystem.load_region(self, sector=sector)
         else:
             #The sector doesn't exist yet, generate it!
-            bx, by, bz = self.savingsystem.sector_to_blockpos(sector)
+            bx, by, bz = savingsystem.sector_to_blockpos(sector)
             rx, ry, rz = bx//32*32, by//32*32, bz//32*32
 
             #For ease of saving/loading, queue up generation of a whole region (4x4x4 sectors) at once
