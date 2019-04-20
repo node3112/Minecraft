@@ -90,10 +90,19 @@ For git:
 
 For optimal performance, you can compile the code to C using Cython.
 
-To do so, you have to install Cython and Python dev files
-(`sudo apt-get install cython python-dev` under Ubuntu), then run
-`python setup.py build_ext --inplace`.  You will have
-to run this last command each time you update the game.
+```
+pip install cython
+python setup.py build_ext --inplace
+```
+This will generate `.pyd` files, which Python will prefer to load instead of your `.py` files,
+so you will need to rebuild or delete the `.pyd` each time you make changes.
 
 setup.py will also compile Pyglet using Cython, if you download
 the pyglet source code and put the *pyglet* folder inside the game repository.
+
+## Building Windows Executables
+```
+pip install cython cx_Freeze
+python setup.py build
+```
+This builds Cython-optimized `.pyd`'s, and bundles together all libraries including Python itself, into `build/exe.win-amd64-3.7/`
