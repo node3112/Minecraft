@@ -149,7 +149,7 @@ class PacketReceiver(Thread):
         elif packetid == 10: # Update Tile Entity
             self.world[struct.unpack("iii", packet[:12])].update_tile_entity(packet[12:])
         elif packetid == 255:  # Spawn Position
-            self.controller.player.position = struct.unpack("iii", packet[:12])
+            self.controller.player.position = struct.unpack("fff", packet[:12])
             packet = packet[12:]
             packet, seed = extract_string_packet(packet)
             self.world.biome_generator = BiomeGenerator(seed)
