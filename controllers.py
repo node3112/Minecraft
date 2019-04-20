@@ -691,7 +691,7 @@ class GameController(Controller):
     def show_map(self):
         print("map called...")
          # taken from Nebual's biome_explorer, this is ment to be a full screen map that uses mini tiles to make a full 2d map.
-        with open(os.path.join(G.game_dir, "world", "seed"), "rb") as f:
+        with open(os.path.join(G.game_dir, "world", "seed"), "r") as f:
             SEED = f.read()
         b = BiomeGenerator(SEED)
         x, y, z = self.player.position
@@ -719,7 +719,7 @@ class GameController(Controller):
             tmap = letters[b.get_biome_type(x,y)]
             tile_map = load_image('resources', 'textures', tmap +'.png')
             tile_map.anchor_x = x * 8
-            tile_map.anchor_Y = y * 8
+            tile_map.anchor_y = y * 8
             sprite = pyglet.sprite.Sprite(tile_map, x=x * 8, y=y * 8, batch=pbatch)
             game_map = image_sprite(tile_map, pbatch, pgroup, x * 8, y * 8, 8, 8)
             game_map = pyglet.sprite.Sprite(image,x=G.WINDOW_WIDTH, y=G.WINDOW_HEIGHT,batch=pbatch, group=pgroup)

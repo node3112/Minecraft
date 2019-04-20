@@ -3,6 +3,7 @@
 # Python packages
 import os
 import struct
+from typing import Tuple, List
 
 # Third-party packages
 import pyglet
@@ -10,6 +11,7 @@ from pyglet.gl import *
 
 # Modules from this project
 import globals as G
+from custom_types import iVector, fVector
 
 
 __all__ = (
@@ -81,7 +83,7 @@ def get_block_icon(block, icon_size, world):
     return block_icon
 
 
-FACES = (
+FACES: Tuple[iVector, ...] = (
     ( 0,  1,  0),
     ( 0, -1,  0),
     (-1,  0,  0),
@@ -90,7 +92,7 @@ FACES = (
     ( 0,  0, -1),
 )
 
-FACES_WITH_DIAGONALS = FACES + (
+FACES_WITH_DIAGONALS: Tuple[iVector, ...] = FACES + (
     (-1, -1,  0),
     (-1,  0, -1),
     ( 0, -1, -1),
@@ -133,12 +135,12 @@ def normalize_float(f: float) -> int:
     return int_f - 1
 
 
-def normalize(position: (float, float, float)) -> (float, float, float):
+def normalize(position: fVector) -> fVector:
     x, y, z = position
     return normalize_float(x), normalize_float(y), normalize_float(z)
 
 
-def sectorize(position: (int, int, int)) -> (int, int, int):
+def sectorize(position: iVector) -> iVector:
     x, y, z = normalize(position)
     x, y, z = (x // G.SECTOR_SIZE,
                y // G.SECTOR_SIZE,
@@ -164,13 +166,19 @@ class TextureGroup(pyglet.graphics.Group):
 def make_int_packet(i: int) -> bytes:
     return struct.pack('i', i)
 
-def extract_int_packet(packet):
+def extract_int_packet(packet: bytes):
+    """
+    :rtype: (bytes, int)
+    """
     return packet[4:], struct.unpack('i', packet[:4])[0]
 
 def make_string_packet(s: str) -> bytes:
     return struct.pack('i', len(s)) + s.encode('utf-8')
 
-def extract_string_packet(packet: bytes) -> (bytes, str):
+def extract_string_packet(packet: bytes):
+    """
+    :rtype: (bytes, str)
+    """
     strlen = struct.unpack('i', packet[:4])[0]
     packet = packet[4:]
     s = packet[:strlen].decode('utf-8')

@@ -7,11 +7,14 @@ import random
 import struct
 import time
 import sqlite3
+from typing import Optional
 
 # Third-party packages
 # Nothing for now...
 
 # Modules from this project
+from custom_types import iVector
+
 from blocks import BlockID
 from debug import performance_info
 import globals as G
@@ -34,22 +37,22 @@ null2 = struct.pack("xx") #Two \0's
 null1024 = null2*512      #1024 \0's
 air = G.BLOCKS_DIR[(0,0)]
 
-def sector_to_filename(secpos: (int, int, int)) -> str:
+def sector_to_filename(secpos: iVector) -> str:
     x,y,z = secpos
     return "%i.%i.%i.pyr" % (x//4, y//4, z//4)
 
-def region_to_filename(region: (int, int, int)) -> str:
+def region_to_filename(region: iVector) -> str:
     return "%i.%i.%i.pyr" % region
 
-def sector_to_region(secpos: (int, int, int)) -> (int, int, int):
+def sector_to_region(secpos: iVector) -> iVector:
     x,y,z = secpos
     return (x//4, y//4, z//4)
 
-def sector_to_offset(secpos: (int, int, int)) -> int:
+def sector_to_offset(secpos: iVector) -> int:
     x,y,z = secpos
     return ((x % 4)*16 + (y % 4)*4 + (z % 4)) * 1024
 
-def sector_to_blockpos(secpos: (int, int, int)) -> (int, int, int):
+def sector_to_blockpos(secpos: iVector) -> iVector:
     x,y,z = secpos
     return x*8, y*8, z*8
 
@@ -68,7 +71,7 @@ def connect_db(world=None):
     return sqlite3.connect(os.path.join(world_dir, G.DB_NAME)) 
 
 
-def save_sector_to_bytes(blocks, secpos: (int, int, int)) -> bytes:
+def save_sector_to_bytes(blocks, secpos: iVector) -> bytes:
     """
 
     :type blocks: world_server.WorldServer
@@ -150,8 +153,7 @@ def sector_exists(sector, world=None):
     if world is None: world = "world"
     return os.path.lexists(os.path.join(G.game_dir, world, sector_to_filename(sector)))
 
-def load_region(world, world_name: str = None, region: (int, int, int) = None, sector: (int, int, int) = None):
-    if world_name is None: world_name = "world"
+def load_region(world, world_name: str = "world", region: Optional[iVector] = None, sector: Optional[iVector] = None):
     sectors = world.sectors
     blocks = world
     SECTOR_SIZE = G.SECTOR_SIZE
