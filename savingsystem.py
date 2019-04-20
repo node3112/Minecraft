@@ -83,7 +83,7 @@ def save_sector_to_bytes(blocks, secpos: iVector) -> bytes:
         for y in range(cy, cy+8):
             for z in range(cz, cz+8):
                 blk = blocks.get((x,y,z), air).id
-                if blk is not air:
+                if blk != air:
                     #if isinstance(blk, int): # When does this occur? Its expensive and I don't see it triggering
                     #    blk = BlockID(blk)
                     fstr += structuchar2.pack(blk.main, blk.sub)
@@ -109,7 +109,7 @@ def save_blocks(blocks, world: str):
     #blocks and sectors (window.world and window.world.sectors)
     #Saves individual sectors in region files (4x4x4 sectors)
 
-    for secpos in blocks.sectors: #TODO: only save dirty sectors
+    for secpos in blocks.sectors.keys(): #TODO: only save dirty sectors
         if not blocks.sectors[secpos]:
             continue #Skip writing empty sectors
         file = os.path.join(G.game_dir, world, sector_to_filename(secpos))
@@ -194,6 +194,9 @@ def load_region(world, world_name: str = "world", region: Optional[iVector] = No
                                         sectors[(x//SECTOR_SIZE, y//SECTOR_SIZE, z//SECTOR_SIZE)].append(position)
 
 def load_player(player, world: str):
+    """
+    :type player: server.ServerPlayer
+    """
     db = connect_db(world)
     cur = db.cursor()
     cur.execute("select * from players where name='%s'" % player.username)
