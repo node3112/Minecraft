@@ -3,7 +3,7 @@
 # Python packages
 import os
 import struct
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 # Third-party packages
 import pyglet
@@ -140,12 +140,10 @@ def normalize(position: fVector) -> fVector:
     return normalize_float(x), normalize_float(y), normalize_float(z)
 
 
-def sectorize(position: iVector) -> iVector:
-    x, y, z = normalize(position)
-    x, y, z = (x // G.SECTOR_SIZE,
-               y // G.SECTOR_SIZE,
-               z // G.SECTOR_SIZE)
-    return x, y, z
+def sectorize(position: Union[iVector, fVector]) -> iVector:
+    return (normalize_float(float(position[0])) // G.SECTOR_SIZE,
+            normalize_float(float(position[1])) // G.SECTOR_SIZE,
+            normalize_float(float(position[2])) // G.SECTOR_SIZE)
 
 
 class TextureGroup(pyglet.graphics.Group):
