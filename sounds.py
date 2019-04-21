@@ -8,6 +8,7 @@ import pyglet.media
 
 # Modules from this project
 import globals as G
+import custom_types
 
 
 __all__ = (
@@ -31,11 +32,7 @@ stone_break = pyglet.resource.media("stone_break.wav", streaming=False)
 melon_break = pyglet.resource.media("melon_break.wav", streaming=False)
 sand_break = pyglet.resource.media("sand_break.wav", streaming=False)
 
-def play_sound(sound, player=None, position=None):
-    """
-
-    :type player: player.Player
-    """
+def play_sound(sound, player: custom_types.Player, position=None):
     if G.EFFECT_VOLUME <= 0:
         return
     sound_player = pyglet.media.Player()

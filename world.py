@@ -64,6 +64,15 @@ class World(dict):
         # biome generator for colorizer, set by packet receiver
         self.biome_generator = None
 
+    def get_block(self, position: iVector) -> Optional[Block]:
+        return self.get(position)
+
+    def get_block_above(self, position: iVector) -> Optional[Block]:
+        return self.get_block((position[0], position[1] + 1, position[2]))
+
+    def get_block_below(self, position: iVector) -> Optional[Block]:
+        return self.get_block((position[0], position[1] - 1, position[2]))
+
     # Add the block clientside, then tell the server about the new block
     def add_block(self, position: iVector, block, sync: bool = True, force: bool = True):
         self._add_block(position, block)  # For Prediction

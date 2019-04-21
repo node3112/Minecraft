@@ -14,6 +14,9 @@ import struct   # for update_tile_entity
 import pyglet
 from pyglet.gl import *
 from pyglet.image.atlas import TextureAtlas
+
+import custom_types
+from custom_types import iVector
 from utils import load_image, make_nbt_from_dict, extract_nbt
 
 # Modules from this project
@@ -331,7 +334,7 @@ class Block:
         if self.sub_id_as_metadata:
             self.id.sub = metadata
 
-    def play_break_sound(self, player=None, position=None):
+    def play_break_sound(self, player: custom_types.Player, position=None):
         if self.break_sound is not None:
             sounds.play_sound(self.break_sound, player=player, position=position)
 
