@@ -4,6 +4,7 @@
 import os
 import struct
 from typing import Tuple, List
+from ctypes import byref
 
 # Third-party packages
 import pyglet
@@ -72,7 +73,12 @@ def init_font(filename, fontname):
     pyglet.font.load(fontname)
 
 
+
+_block_icon_fbo = None
+
 def get_block_icon(block, icon_size, world):
+    global _block_icon_fbo
+
     print(block.id.filename())
     block_icon = G.texture_pack_list.selected_texture_pack.load_texture(block.id.filename()) \
         or (block.group or world.group).texture.get_region(
@@ -80,7 +86,75 @@ def get_block_icon(block, icon_size, world):
             int(block.texture_data[2 * 8 + 1] * G.TILESET_SIZE) * icon_size,
             icon_size,
             icon_size)
-    return block_icon
+
+    if block.id.is_item():
+        return block_icon
+
+    # create 3d icon for blocks
+    if _block_icon_fbo is None:
+        _block_icon_fbo = GLuint(0)
+        glGenFramebuffers(1, byref(_block_icon_fbo))
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _block_icon_fbo)
+
+    icon_texture = pyglet.image.Texture.create(icon_size, icon_size, GL_RGBA)
+    glBindTexture(GL_TEXTURE_2D, icon_texture.id)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, icon_size, icon_size, 0, GL_RGBA, GL_FLOAT, None)
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, icon_texture.id, 0)
+
+    viewport = (GLint * 4)()
+    glGetIntegerv(GL_VIEWPORT, viewport)
+    glViewport(0, 0, icon_size, icon_size)
+
+    glClearColor(1.0, 1.0, 1.0, 0.0)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+    glMatrixMode(GL_PROJECTION)
+    glPushMatrix()
+    glLoadIdentity()
+    glOrtho(-1.5, 1.5, -1.5, 1.5, -10, 10)
+    glMatrixMode(GL_MODELVIEW)
+    glPushMatrix()
+    glLoadIdentity()
+    glColor4f(1.0, 1.0, 1.0, 1.0)
+    glRotatef(-45.0, 0.0, 1.0, 0.0)
+    glRotatef(-45.0, -1.0, 0.0, 1.0)
+    glScalef(0.9, 0.9, 0.9)
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    glBindTexture(block_icon.texture.target,
+                  block_icon.texture.id)
+    glEnable(block_icon.texture.target)
+    vert_list = [
+        -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0,
+    ]
+    uv_list = [0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
+               0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
+               0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
+    l = pyglet.graphics.vertex_list(
+        12,
+        ('v3f/static', vert_list),
+        ('t2f/static', uv_list),
+    )
+    l.draw(GL_QUADS)
+    glDisable(block_icon.texture.target)
+
+    glMatrixMode(GL_PROJECTION)
+    glPopMatrix()
+    glMatrixMode(GL_MODELVIEW)
+    glPopMatrix()
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+    glViewport(*viewport)
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+    return icon_texture.get_image_data()
 
 
 FACES: Tuple[iVector, ...] = (
