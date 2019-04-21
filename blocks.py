@@ -447,7 +447,8 @@ class GrassBlock(Block):
 
     def on_neighbor_change(self, world, neighbor_pos, self_pos):
         # something has been put on this grass block, which makes it become dirt block
-        if (self_pos[0], self_pos[1] + 1, self_pos[-1]) in world:
+        above = (self_pos[0], self_pos[1] + 1, self_pos[2])
+        if above in world and not world[above].transparent:
             world.remove_block(None, self_pos)
             world.add_block(self_pos, dirt_block)
 
