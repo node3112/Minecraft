@@ -4,7 +4,7 @@
 
 # Future imports
 
-from math import floor
+from math import floor, ceil, sqrt
 
 # Python packages
 # Nothing for now...
@@ -48,6 +48,7 @@ class TextureGroupIndividual(pyglet.graphics.Group):
         self.texture_data = []
         i=0
         texture_pack = G.texture_pack_list.selected_texture_pack
+
         for name in names:
             if not name in BLOCK_TEXTURE_DIR:
                 BLOCK_TEXTURE_DIR[name] = texture_pack.load_texture(['textures', 'blocks', name + '.png'])
@@ -66,13 +67,16 @@ class TextureGroupIndividual(pyglet.graphics.Group):
                 BLOCK_TEXTURE_DIR[name].get_image_data().set_data('RGBA', texture_size * 4, bytes(data))
 
             if atlas == None:
-                atlas = TextureAtlas(texture_size * len(names), texture_size)
+                # prevent pyglet from using rectangle texture
+                atlas = TextureAtlas(texture_size * ceil(sqrt(len(names))), texture_size * ceil(sqrt(len(names))))
                 self.texture = atlas.texture
 
             subtex = atlas.add(BLOCK_TEXTURE_DIR[name].get_region(0,0,texture_size,texture_size))
+
             for val in subtex.tex_coords:
                 i += 1
-                if i % 3 != 0: self.texture_data.append(val) #tex_coords has a z component we don't utilize
+                if i % 3 != 0: self.texture_data.append(val) # tex_coords has a z component we don't utilize
+
         if atlas == None:
             atlas = TextureAtlas(1, 1)
         self.texture = atlas.texture
@@ -103,13 +107,17 @@ class TextureGroupIndividual(pyglet.graphics.Group):
 
     def set_state(self):
         if self.texture:
+            glActiveTexture(GL_TEXTURE0)
             glBindTexture(self.texture.target, self.texture.id)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
             glEnable(self.texture.target)
 
     def unset_state(self):
         if self.texture:
+            glActiveTexture(GL_TEXTURE0)
             glDisable(self.texture.target)
 
 
@@ -332,6 +340,30 @@ class Block:
                 xp, ym, zm,   xm, ym, zm,   xm, yp, zm,   xp, yp, zm,  # back
             )
         return vertices
+
+    def get_normal(self):
+        if self.vertex_mode == G.VERTEX_GRID or self.vertex_mode == G.VERTEX_CROSS:
+            return None
+
+        normal = ()
+
+        if len(self.top_texture) > 0 or len(self.side_texture) == 0:
+            normal += (
+                0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0  # top
+            )
+        if len(self.bottom_texture) > 0 or len(self.side_texture) == 0:
+            normal += (
+                0.0, -1.0, 0.0,   0.0, -1.0, 0.0,   0.0, -1.0, 0.0,   0.0, -1.0, 0.0  # bottom
+            )
+
+        normal += (
+                -1.0, 0.0, 0.0,   -1.0, 0.0, 0.0,   -1.0, 0.0, 0.0,   -1.0, 0.0, 0.0,  # left
+                1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,  # right
+                0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,  # front
+                0.0, 0.0, -1.0,   0.0, 0.0, -1.0,   0.0, 0.0, -1.0,   0.0, 0.0, -1.0,  # back
+            )
+
+        return normal
 
     def get_metadata(self):
         if self.sub_id_as_metadata:

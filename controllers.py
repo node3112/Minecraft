@@ -11,7 +11,6 @@ import operator
 import os
 import random
 
-
 # Third-party packages
 import threading
 from pyglet.gl import *
@@ -26,6 +25,7 @@ from gui import ItemSelector, InventorySelector, TextWidget
 from items import Tool
 from player import Player
 from model import PlayerModel
+from shaders import create_block_shader
 from skydome import Skydome
 import utils
 from utils import vec, sectorize, normalize, load_image, image_sprite
@@ -199,7 +199,7 @@ class GameController(Controller):
                     if not self.player.add_item(item, quantity=hit_block.drop_quantity[index]):
                         return
             elif not self.player.add_item(hit_block.drop_id, quantity=hit_block.drop_quantity):
-                    return
+                return
             self.item_list.update_items()
             self.inventory_list.update_items()
 
@@ -220,6 +220,10 @@ class GameController(Controller):
 
         #glClearColor(0, 0, 0, 0)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        self.block_shader = create_block_shader()
+        self.block_shader.uniformi('uDiffuse', 0)
+
 
     def setup(self):
         if G.SINGLEPLAYER:
@@ -255,7 +259,7 @@ class GameController(Controller):
 
         sky_rotation = -20.0  # -20.0
 
-       # TERRAIN_CHOICE = self.biome_generator.get_biome_type(sector[0], sector[2])
+        # TERRAIN_CHOICE = self.biome_generator.get_biome_type(sector[0], sector[2])
         default_skybox = 'skydome.jpg'
         #if TERRAIN_CHOICE == G.NETHER:
         #    default_skybox = 'skydome_nether.jpg'
@@ -425,7 +429,7 @@ class GameController(Controller):
                 self.inventory_list.set_furnace(hit_block)
                 self.inventory_list.toggle(False)
             elif hit_block.density >= 1:
-               self.put_block(previous)
+                self.put_block(previous)
         elif self.item_list.get_current_block() and getattr(self.item_list.get_current_block(), 'regenerated_health', 0) != 0 and self.player.health < self.player.max_health:
             self.eat_item()
 
@@ -544,7 +548,11 @@ class GameController(Controller):
         #self.window.clear()
         self.set_3d()
         #glColor3d(1, 1, 1)
+        self.block_shader.bind()
+        sun_position = self.skydome.get_sun_position()
+        self.block_shader.uniformf('uLightPos', *sun_position)
         self.world.batch.draw()
+        self.block_shader.unbind()
         self.world.transparency_batch.draw()
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -690,7 +698,7 @@ class GameController(Controller):
 
     def show_map(self):
         print("map called...")
-         # taken from Nebual's biome_explorer, this is ment to be a full screen map that uses mini tiles to make a full 2d map.
+        # taken from Nebual's biome_explorer, this is ment to be a full screen map that uses mini tiles to make a full 2d map.
         with open(os.path.join(G.game_dir, "world", "seed"), "r") as f:
             SEED = f.read()
         b = BiomeGenerator(SEED)
@@ -711,27 +719,27 @@ class GameController(Controller):
         #sprite = pyglet.sprite.Sprite(image)
         #sprite.image(image)
         #sprite.visible = True
-       # map_frame.draw()
-       # map_frame.visible = True
+        # map_frame.draw()
+        # map_frame.visible = True
         for y in range(int(cury),int(cury+ysize)):
-         for x in range(int(curx),int(curx+xsize)):
-             #string += letters[b.get_biome_type(x,y)]
-            tmap = letters[b.get_biome_type(x,y)]
-            tile_map = load_image('resources', 'textures', tmap +'.png')
-            tile_map.anchor_x = x * 8
-            tile_map.anchor_y = y * 8
-            sprite = pyglet.sprite.Sprite(tile_map, x=x * 8, y=y * 8, batch=pbatch)
-            game_map = image_sprite(tile_map, pbatch, pgroup, x * 8, y * 8, 8, 8)
-            game_map = pyglet.sprite.Sprite(image,x=G.WINDOW_WIDTH, y=G.WINDOW_HEIGHT,batch=pbatch, group=pgroup)
-            game_map = pyglet.sprite.Sprite(tile_map,x=x*8, y=y*8,batch=pbatch, group=pgroup)
+            for x in range(int(curx),int(curx+xsize)):
+                #string += letters[b.get_biome_type(x,y)]
+                tmap = letters[b.get_biome_type(x,y)]
+                tile_map = load_image('resources', 'textures', tmap +'.png')
+                tile_map.anchor_x = x * 8
+                tile_map.anchor_y = y * 8
+                sprite = pyglet.sprite.Sprite(tile_map, x=x * 8, y=y * 8, batch=pbatch)
+                game_map = image_sprite(tile_map, pbatch, pgroup, x * 8, y * 8, 8, 8)
+                game_map = pyglet.sprite.Sprite(image,x=G.WINDOW_WIDTH, y=G.WINDOW_HEIGHT,batch=pbatch, group=pgroup)
+                game_map = pyglet.sprite.Sprite(tile_map,x=x*8, y=y*8,batch=pbatch, group=pgroup)
 
-            tile_map.blit(x *8, y * 8)
+                tile_map.blit(x *8, y * 8)
 
-            #tile_map.draw()
-            #map.append(tmap)
-            game_map.draw()
-            pbatch.draw()
-            ## Save to file, did not work...
+                #tile_map.draw()
+                #map.append(tmap)
+                game_map.draw()
+                pbatch.draw()
+                ## Save to file, did not work...
         #map.image.save('mapX.png')
         # map_streamX = open('mapX2.png', 'wb')
         # tile_map.save('mapX2.png', file=map_streamX)

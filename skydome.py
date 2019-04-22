@@ -58,7 +58,7 @@ class Skydome:
             v_length = vend - vstart
             v = (v_length-i * v_length) + vstart
             return (x, y, z), (u, v)
-    
+
         for j in range(40):
             v, uv = sphere_vert(0, j)
             vertex.extend(v)
@@ -70,7 +70,7 @@ class Skydome:
             vertex.extend(v)
             uvs.extend(uv)
             count += 3
-      
+
         for i in range(1, 10):
             for j in range(40):
                 v, uv = sphere_vert(i, j)
@@ -82,7 +82,7 @@ class Skydome:
                 v, uv = sphere_vert(i+1, j+1)
                 vertex.extend(v)
                 uvs.extend(uv)
-                
+
                 v, uv = sphere_vert(i, j)
                 vertex.extend(v)
                 uvs.extend(uv)
@@ -128,6 +128,9 @@ class Skydome:
             ('v3f/static', vertex_list),
             ('t2f/static', uv_list),
         )
+
+    def get_sun_position(self):
+        return (0.0, self.size * cos(self.sun_angle), self.size * sin(self.sun_angle))
 
     def draw(self):
         glPushMatrix()

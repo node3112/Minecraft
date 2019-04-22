@@ -34,6 +34,7 @@ class Window(pyglet.window.Window):
         )
         super(Window, self).__init__(
             G.WINDOW_WIDTH, G.WINDOW_HEIGHT, **kwargs)
+
         self.exclusive = False
         self.reticle = None
         self.controller = None
@@ -136,7 +137,7 @@ def main(options):
 
     if G.CLIENT:
         G.CLIENT.stop()
-        
+
     if G.SERVER:
         print('Saving...')
         save_world(G.SERVER, "world")

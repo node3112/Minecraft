@@ -218,12 +218,14 @@ class TextureGroup(pyglet.graphics.Group):
         self.texture = pyglet.image.load(path).get_texture()
 
     def set_state(self):
+        glActiveTexture(GL_TEXTURE0)
         glBindTexture(self.texture.target, self.texture.id)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glEnable(self.texture.target)
 
     def unset_state(self):
+        glActiveTexture(GL_TEXTURE0)
         glDisable(self.texture.target)
 
 # Named Binary Tag

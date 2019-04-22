@@ -203,6 +203,8 @@ class World(dict):
         # only show exposed faces
         vertex_data = list(block.get_vertices(*position))
         texture_data = list(block.texture_data)
+        normal_data = block.get_normal()
+
         color_data = None
         if hasattr(block, 'get_color') and self.biome_generator is not None:
             temp = self.biome_generator.get_temperature(position[0], position[-1])
@@ -224,15 +226,21 @@ class World(dict):
         count = len(texture_data) // 2
         # create vertex list
         batch = self.transparency_batch if block.transparent else self.batch
-        if color_data is not None:
+        if color_data is None:
+            color_data = [1.0] * (count * 3)
+
+        if normal_data is not None:
+            self._shown[position] = batch.add(count, GL_QUADS, block.group or self.group,
+                                              ('v3f/static', vertex_data),
+                                              ('t2f/static', texture_data),
+                                              ('c3f/static', color_data),
+                                              ('n3f/static', normal_data))
+        else:
             self._shown[position] = batch.add(count, GL_QUADS, block.group or self.group,
                                           ('v3f/static', vertex_data),
                                           ('t2f/static', texture_data),
                                           ('c3f/static', color_data))
-        else:
-            self._shown[position] = batch.add(count, GL_QUADS, block.group or self.group,
-                                          ('v3f/static', vertex_data),
-                                          ('t2f/static', texture_data))
+
 
     def show_sector(self, sector: iVector):
         if sector in self.sectors:
