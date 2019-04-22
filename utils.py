@@ -119,29 +119,19 @@ def get_block_icon(block, icon_size, world):
     glLoadIdentity()
     glColor4f(1.0, 1.0, 1.0, 1.0)
     glRotatef(-45.0, 0.0, 1.0, 0.0)
-    glRotatef(-45.0, -1.0, 0.0, 1.0)
-    glScalef(0.9, 0.9, 0.9)
+    glRotatef(-30.0, -1.0, 0.0, 1.0)
+    glScalef(1.5, 1.5, 1.5)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    glBindTexture(block_icon.texture.target,
-                  block_icon.texture.id)
-    glEnable(block_icon.texture.target)
-    vert_list = [
-        -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
-        1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0,
-        -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0,
-    ]
-    uv_list = [0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
-               0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
-               0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
-    l = pyglet.graphics.vertex_list(
-        12,
-        ('v3f/static', vert_list),
-        ('t2f/static', uv_list),
-    )
-    l.draw(GL_QUADS)
-    glDisable(block_icon.texture.target)
+    vertex_data = block.get_vertices(0, 0, 0)
+    texture_data = block.texture_data
+    count = len(texture_data) // 2
+    batch = pyglet.graphics.Batch()
+    batch.add(count, GL_QUADS, (block.group or world.group),
+              ('v3f/static', vertex_data),
+              ('t2f/static', texture_data))
+    batch.draw()
 
     glMatrixMode(GL_PROJECTION)
     glPopMatrix()
