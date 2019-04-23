@@ -118,11 +118,8 @@ class GameController(Controller):
         self.sector, self.highlighted_block, self.crack, self.last_key = (None,) * 4
         self.bg_red, self.bg_green, self.bg_blue = (0.0,) * 3
         self.mouse_pressed, self.sorted = (False,) * 2
-        self.count, self.block_damage = (0,) * 2
-        self.light_y, self.light_z = (1.0,) * 2
-        self.time_of_day = 0.0
-        self.hour_deg = 15.0
-        self.clock = 6
+        self.block_damage = 0
+        self.time_of_day = 6.0
 
         self.back_to_main_menu = threading.Event()
 
@@ -133,7 +130,7 @@ class GameController(Controller):
         self.update_sector(dt)
         self.update_player(dt)
         self.update_mouse(dt)
-        self.update_time()
+        self.update_time(dt)
         self.camera.update(dt)
 
     def update_sector(self, dt):
@@ -281,7 +278,6 @@ class GameController(Controller):
         self.focus_block = Block(width=1.05, height=1.05)
         self.earth = vec(0.8, 0.8, 0.8, 1.0)
         self.white = vec(1.0, 1.0, 1.0, 1.0)
-        self.ambient = vec(1.0, 1.0, 1.0, 1.0)
         self.polished = GLfloat(100.0)
         self.crack_batch = pyglet.graphics.Batch()
 
@@ -341,55 +337,16 @@ class GameController(Controller):
         pyglet.clock.schedule_interval_soft(self.world.hide_sectors, 10.0, self.player)
         return True
 
-    def update_time(self):
-        """
-        The idle function advances the time of day.
-        The day has 24 hours, from sunrise to sunset and from sunrise to
-        second sunset.
-        The time of day is converted to degrees and then to radians.
-        """
-
-        if not self.window.exclusive:
-            return
-
-        time_of_day = self.time_of_day if self.time_of_day < 12.0 \
-            else 24.0 - self.time_of_day
-
-        if time_of_day <= 2.5:
-            self.time_of_day += 1.0 / G.TIME_RATE
-            time_of_day += 1.0 / G.TIME_RATE
-            self.count += 1
-        else:
-            self.time_of_day += 20.0 / G.TIME_RATE
-            time_of_day += 20.0 / G.TIME_RATE
-            self.count += 1.0 / 20.0
+    def update_time(self, dt: float):
+        self.time_of_day += dt * 24.0 / G.TIME_RATE
         if self.time_of_day > 24.0:
             self.time_of_day = 0.0
-            time_of_day = 0.0
-
-        side = len(self.world.sectors) * 2.0
-
-        self.light_y = 2.0 * side * sin(time_of_day * self.hour_deg
-                                        * G.DEG_RAD)
-        self.light_z = 2.0 * side * cos(time_of_day * self.hour_deg
-                                        * G.DEG_RAD)
-        if time_of_day <= 2.5:
-            ambient_value = 1.0
-        else:
-            ambient_value = 1 - (time_of_day - 2.25) / 9.5
-        self.ambient = vec(ambient_value, ambient_value, ambient_value, 1.0)
 
         # Calculate sky colour according to time of day.
-        sin_t = sin(pi * time_of_day / 12.0)
+        sin_t = sin(pi * (((self.time_of_day / 12.0) + 1) % 2 - 1))
         self.bg_red = 0.1 * (1.0 - sin_t)
         self.bg_green = 0.9 * sin_t
         self.bg_blue = min(sin_t + 0.4, 0.8)
-
-        if fmod(self.count / 2, G.TIME_RATE) == 0:
-            if self.clock == 18:
-                self.clock = 6
-            else:
-                self.clock += 1
 
         self.skydome.update_time_of_day(self.time_of_day)
 
@@ -621,8 +578,7 @@ class GameController(Controller):
     def draw_label(self):
         x, y, z = self.player.position
         self.label.text = 'Time:%.1f Inaccurate FPS:%02d (%.2f, %.2f, %.2f) Blocks Shown: %d / %d sector_packets:%d'\
-                          % (self.time_of_day if (self.time_of_day < 12.0)
-               else (24.0 - self.time_of_day),
+                          % (self.time_of_day,
                pyglet.clock.get_fps(), x, y, z,
                len(self.world._shown), len(self.world), len(self.world.sector_packets))
         self.label.draw()
@@ -632,8 +588,7 @@ class GameController(Controller):
         self.debug_text.clear()
         self.debug_text.write_line(' '.join((G.APP_NAME, str(G.APP_VERSION))))
         self.debug_text.write_line('Time:%.1f Inaccurate FPS:%02d Blocks Shown: %d / %d sector_packets:%d'\
-                          % (self.time_of_day if (self.time_of_day < 12.0)
-               else (24.0 - self.time_of_day),
+                          % (self.time_of_day,
                pyglet.clock.get_fps(),
                len(self.world._shown), len(self.world), len(self.world.sector_packets)))
         self.debug_text.write_line('x: %.2f, sector: %d' %(x, x // G.SECTOR_SIZE))

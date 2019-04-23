@@ -109,7 +109,7 @@ VERTEX_MODES = (
 # ids of items should be >= ITEM_ID_MIN
 ITEM_ID_MIN = 256
 
-TIME_RATE = 240 * 10  # Rate of change (steps per hour).
+TIME_RATE = (20 * 60)  # Rate of change (seconds per game day).
 SPREADING_MUTATION_DELAY = 4  # in seconds
 
 
