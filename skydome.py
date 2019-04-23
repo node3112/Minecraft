@@ -130,7 +130,7 @@ class Skydome:
         )
 
     def get_sun_position(self):
-        return (0.0, self.size * cos(self.sun_angle), self.size * sin(self.sun_angle))
+        return (0.0, self.size * sin(self.sun_angle), self.size * -cos(self.sun_angle))
 
     def draw(self):
         glPushMatrix()
