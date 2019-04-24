@@ -230,11 +230,12 @@ class GameController(Controller):
                 print('Starting internal server...')
                 # TODO: create world menu
                 G.SAVE_FILENAME = "world"
+                server_args = ['--host=localhost', '--world=' + G.SAVE_FILENAME]
                 if sys.platform == "win32" and os.path.isfile("server.exe"):
                     local_server_executable = ["server.exe"]
                 else:
                     local_server_executable = [sys.executable, '-u', 'server.py']
-                self.local_server_process = subprocess.Popen(local_server_executable,
+                self.local_server_process = subprocess.Popen(local_server_executable + server_args,
                                                            stdin=subprocess.PIPE,
                                                            stdout=subprocess.PIPE,
                                                            stderr=subprocess.STDOUT,

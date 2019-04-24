@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-
+import argparse
 from _socket import SHUT_RDWR
 import socket
 import struct
 import time
-import timer
 import socketserver
 import threading
 
 import globals as G
+import timer
 from savingsystem import save_sector_to_bytes, save_blocks, save_world, load_player, save_player
 from world_server import WorldServer
 import blocks
@@ -217,12 +217,14 @@ class Server(socketserver.ThreadingTCPServer):
             player.sendpacket(12 + len(value), b"\x0A" + struct.pack("iii", *position) + value)
 
 
-def start_server(internal=False):
-    if internal:
-        localip = "localhost"
-    else:
-        localip = "0.0.0.0"
-    server = Server((localip, 1486), ServerPlayer)
+def start_server(options):
+    G.GAME_MODE = options.game_mode
+    G.SAVE_FILENAME = options.worldname
+    for name, val in options._get_kwargs():
+        setattr(G.LAUNCH_OPTIONS, name, val)
+
+    load_modules(server=True)
+    server = Server((options.host, options.port), ServerPlayer)
     G.SERVER = server
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()
@@ -237,15 +239,17 @@ def start_server(internal=False):
 
 
 if __name__ == '__main__':
-    #TODO: Enable server launch options
-    #In the mean time, manually set
-    setattr(G.LAUNCH_OPTIONS, "seed", None)
-    G.SAVE_FILENAME = "world"
+    parser = argparse.ArgumentParser(description='pyCraft game server')
 
-    load_modules(server=True)
+    connection_group = parser.add_argument_group('Connection options')
+    connection_group.add_argument("--host", default="0.0.0.0", help="IP Interface to bind to")
+    connection_group.add_argument("--port", default=1486, help="Port to bind to")
+    world_group = parser.add_argument_group('World options')
+    world_group.add_argument("--worldname", default="world", help="World save to use")
+    world_group.add_argument("--seed", default=None)
+    world_group.add_argument("--game-mode", choices=G.GAME_MODE_CHOICES, default=G.GAME_MODE)
 
-    server, server_thread = start_server()
-
+    server, server_thread = start_server(parser.parse_args())
     ip, port = server.server_address
     print("Listening on",ip,port)
 
