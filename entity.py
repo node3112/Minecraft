@@ -10,6 +10,7 @@ import struct
 # Modules from this project
 # Nothing for now...
 import globals as G
+from custom_types import fVector, fVector2
 from physics import physics_manager
 from utils import make_nbt_from_dict
 
@@ -23,10 +24,19 @@ class Entity:
     """
     Base class for players, mobs, TNT and so on.
     """
-    def __init__(self, position, rotation, velocity=0, health=0, max_health=0,
-                 attack_power=0, sight_range=0, attack_range=0):
+    position: fVector
+    rotation: fVector2
+    velocity: float
+    health: int
+    max_health: int
+    attack_power: float
+    sight_range: int
+    attack_range: int
+    entity_id: int
+
+    def __init__(self, position: fVector, rotation: fVector2, velocity: float = 0, health: int = 0, max_health: int = 0,
+                 attack_power: float = 0, sight_range: int = 0, attack_range: int = 0):
         self.position = position
-        self.momentum_previous = ()
         self.rotation = rotation
         self.velocity = velocity
         self.health = health
@@ -38,7 +48,7 @@ class Entity:
         # it to check if monsters can see player
         self.sight_range = sight_range
         self.attack_range = attack_range
-        self.entity_id = None
+        self.entity_id = 0 # filled by EntityManager
 
     def can_handle(self, msg_type):
         return False

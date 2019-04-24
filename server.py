@@ -9,7 +9,7 @@ import socketserver
 import threading
 
 import globals as G
-from custom_types import fVector, iVector
+from custom_types import fVector, iVector, fVector2
 from savingsystem import save_sector_to_bytes, save_blocks, save_world, load_player, save_player
 from world_server import WorldServer
 import blocks
@@ -22,6 +22,7 @@ class ServerPlayer(socketserver.BaseRequestHandler):
     id: int
     position: fVector
     momentum: fVector
+    rotation: fVector2
     username: str
     inventory = b"\0"*(4*40)  # Currently, is serialized to be 4 bytes * (27 inv + 9 quickbar + 4 armor) = 160 bytes
     command_parser = CommandParser()
@@ -55,8 +56,6 @@ class ServerPlayer(socketserver.BaseRequestHandler):
     def broadcast(self, txt: str):
         for player in self.server.players.values():
             player.sendchat(txt)
-    def sendpos(self, pos_bytes, mom_bytes):
-        self.sendpacket(38, b"\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
 
     def lookup_player(self, playername):
         # find player by name
@@ -133,12 +132,14 @@ class ServerPlayer(socketserver.BaseRequestHandler):
                 #TODO: All player's inventories should be autosaved at a regular interval.
             elif packettype == 8:  # Player Movement
                 mom_bytes, pos_bytes = self.request.recv(4*3), self.request.recv(8*3)
+                rotation_bytes = self.request.recv(4*2)
                 self.momentum = struct.unpack("fff", mom_bytes)
                 self.position = struct.unpack("ddd", pos_bytes)
+                self.rotation = struct.unpack("ff", rotation_bytes)
                 for address in players:
                     if address is self.client_address: continue  # He told us, we don't need to tell him
                     #TODO: Only send to nearby players
-                    players[address].sendpacket(38, b"\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes)
+                    players[address].sendpacket(46, b"\x08" + struct.pack("H", self.id) + mom_bytes + pos_bytes + rotation_bytes)
             elif packettype == 9:  # Player Jump
                 for address in players:
                     if address is self.client_address: continue  # He told us, we don't need to tell him

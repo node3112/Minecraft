@@ -5,6 +5,7 @@ import socket
 import time
 import datetime
 from functools import partial
+from typing import Dict, Any
 
 from math import cos, sin, pi, fmod
 import operator
@@ -113,6 +114,8 @@ class MainMenuController(Controller):
         self.switch_controller_class(GameController)
 
 class GameController(Controller):
+    player_ids: Dict[int, Player]
+
     def __init__(self, window):
         super(GameController, self).__init__(window)
         self.sector, self.highlighted_block, self.crack, self.last_key = (None,) * 4
@@ -156,7 +159,7 @@ class GameController(Controller):
         momentum = self.player.get_motion_vector(15 if self.player.flying else 5*self.player.current_density)
         if momentum != self.player.momentum_previous:
             self.player.momentum_previous = momentum
-            self.packetreceiver.send_movement(momentum, self.player.position)
+            self.packetreceiver.send_movement(momentum, self.player.position, self.player.rotation)
 
 
     def update_mouse(self, dt):
@@ -458,10 +461,14 @@ class GameController(Controller):
         if self.window.exclusive:
             m = 0.15
             x, y = self.player.rotation
-            x, y = x + dx * m, y + dy * m
+            x += dx * m
+            y += dy * m
+            x %= 360
             y = max(-90, min(90, y))
             self.player.rotation = (x, y)
             self.camera.rotate(x, y)
+            if dx or dy:
+                self.packetreceiver.send_movement(self.player.momentum_previous, self.player.position, self.player.rotation)
 
     def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
         if button == pyglet.window.mouse.LEFT:

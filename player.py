@@ -1,6 +1,8 @@
 # Imports, sorted alphabetically.
 
 # Python packages
+from typing import Tuple
+
 from math import cos, sin, atan2, radians, acos, pi, sqrt
 import random
 
@@ -9,6 +11,7 @@ import random
 
 # Modules from this project
 from blocks import *
+from custom_types import fVector, fVector2
 from entity import Entity
 import globals as G
 from inventory import Inventory
@@ -23,6 +26,8 @@ __all__ = (
 
 
 class Player(Entity):
+    _position: fVector = (0, 0, 0)
+    _rotation: fVector2 = (0, 0)
     local_player = True
 
     def __init__(self, position=(0,0,0), rotation=(-20, 0), flying=False,
@@ -37,8 +42,10 @@ class Player(Entity):
         self.game_mode = game_mode
         self.strafe = [0, 0]
         self.dy = 0
+        self.momentum_previous = (0,0,0)
         self.current_density = 1 # Current density of the block we're colliding with
         self._position = position
+        self._rotation = rotation
         self.last_sector = None
         self.last_damage_block = 0, 100, 0 # dummy temp value
         self.username = username
@@ -50,7 +57,7 @@ class Player(Entity):
             self.inventory.add_item(item.id, item.max_stack_size)
 
         if not local_player:
-            self.model = PlayerModel(position)
+            self.model = PlayerModel(self.position)
             self.momentum = (0,0,0)
 
     def add_item(self, item_id, quantity=1):
@@ -70,8 +77,23 @@ class Player(Entity):
 
     @position.setter
     def position(self, value):
+        if self._position == value:
+            return
         self._position = value
-        if not self.local_player: self.model.update_position(value)
+        if not self.local_player:
+            self.model.update_position(position=value)
+
+    @property
+    def rotation(self):
+        return self._rotation
+
+    @rotation.setter
+    def rotation(self, value):
+        if self._rotation == value:
+            return
+        self._rotation = value
+        if not self.local_player:
+            self.model.update_position(rotation=value)
 
     def on_deactivate(self):
         self.strafe = [0, 0]
@@ -111,7 +133,7 @@ class Player(Entity):
             self.dy = 0
             self.flying = not self.flying
 
-    def get_motion_vector(self, multiplier=1):
+    def get_motion_vector(self, multiplier: float = 1) -> fVector:
         if any(self.strafe):
             x, y = self.rotation
             y_r = radians(y)

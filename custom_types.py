@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     from blocks import Block, BlockID
     from items import Item, ItemStack
 
+    from controllers import GameController
     from player import Player
     from world import World
 
@@ -16,6 +17,7 @@ else:
     Item = None
     ItemStack = None
 
+    GameController = None
     Player = None
     World = None
 
@@ -25,3 +27,4 @@ else:
 
 iVector = Tuple[int, int, int]
 fVector = Tuple[float, float, float]
+fVector2 = Tuple[float, float]

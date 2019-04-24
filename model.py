@@ -1,14 +1,9 @@
-# Imports, sorted alphabetically.
+from math import pi, radians, sin, cos
 
-# Python packages
-# Nothin for now...
-from math import pi
-
-# Third-party packages
 import pyglet
 from pyglet.gl import *
 
-# Modules from this project
+from custom_types import fVector, fVector2
 from utils import load_image
 
 __all__ = (
@@ -86,7 +81,7 @@ class BoxModel:
         glTranslatef(*self.position)
         glRotatef(self.rotate_angle[0] * (180 / float(pi)), 1.0, 0.0, 0.0)
         glRotatef(self.rotate_angle[1] * (180 / float(pi)), 0.0, 1.0, 0.0)
-        glRotatef(self.rotate_angle[-1] * (180 / float(pi)), 0.0, 0.0, 1.0)
+        glRotatef(self.rotate_angle[2] * (180 / float(pi)), 0.0, 0.0, 1.0)
         self.display.draw(GL_QUADS)
         glPopMatrix()
 
@@ -106,6 +101,7 @@ LEG_WIDTH = BODY_WIDTH
 class PlayerModel:
     def __init__(self, position):
         self.position = None
+        self.rotation = (0, 0)
         image = load_image('resources', 'mob', 'char.png')
         # head
         self.head = BoxModel(HEAD_LENGTH, HEAD_WIDTH, HEAD_HEIGHT, image, 32, 32, 32)
@@ -126,17 +122,30 @@ class PlayerModel:
 
         self.update_position(position)
 
-    def update_position(self, position, init=False):
-        self.position = position
-        x,y,z = position
+    def update_position(self, position: fVector = None, rotation: fVector2 = None):
+        if position is not None:
+            self.position = position
+        if rotation is not None:
+            self.rotation = rotation
+        x,y,z = self.position
         foot_height = y - 1.25
-        
-        self.head.position =    (x - HEAD_LENGTH / 2,              foot_height + LEG_HEIGHT + BODY_HEIGHT, z - HEAD_WIDTH / 2)
+
+        x_r = radians((-self.rotation[0]) + 180)
+        y_r = radians(self.rotation[1])
+        head_mul = cos(radians(self.rotation[0] + 180)) # this is definitely wrong
+        self.head.position =    (x - HEAD_LENGTH / 2 * head_mul,   foot_height + LEG_HEIGHT + BODY_HEIGHT, z - HEAD_WIDTH / 2 * head_mul)
         self.body.position =    (x - BODY_LENGTH / 2,              foot_height + LEG_HEIGHT              , z - BODY_WIDTH / 2)
         self.left_arm.position =(x - BODY_LENGTH / 2 - ARM_LENGTH, foot_height + LEG_HEIGHT              , z - BODY_WIDTH / 2)
         self.right_arm.position=(x + BODY_LENGTH / 2,              foot_height + LEG_HEIGHT              , z - BODY_WIDTH / 2)
         self.left_leg.position =(x - BODY_LENGTH / 2,              foot_height                           , z - BODY_WIDTH / 2)
         self.right_leg.position=(x - BODY_LENGTH / 2 + LEG_LENGTH, foot_height                           , z - BODY_WIDTH / 2)
+
+        self.head.rotate_angle = (0, x_r, 0)
+        # self.body.rotate_angle = (0, x_r, 0)
+        # self.left_arm.rotate_angle = (0, x_r, 0)
+        # self.right_arm.rotate_angle = (0, x_r, 0)
+        # self.left_leg.rotate_angle = (0, x_r, 0)
+        # self.right_leg.rotate_angle = (0, x_r, 0)
 
     def draw(self):
         self.head.draw()

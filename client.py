@@ -8,6 +8,9 @@ from warnings import warn
 
 # Modules from this project
 import pyglet
+
+import custom_types
+from custom_types import fVector, fVector2
 from blocks import BlockID
 import globals as G
 from globals import BLOCKS_DIR, SECTOR_SIZE
@@ -18,7 +21,7 @@ from utils import extract_string_packet
 from biome import BiomeGenerator
 
 class PacketReceiver(Thread):
-    def __init__ (self, world, controller, sock):
+    def __init__ (self, world, controller: custom_types.GameController, sock):
         Thread.__init__(self)
         self.world = world
         self.controller = controller
@@ -143,7 +146,8 @@ class PacketReceiver(Thread):
         elif packetid == 8:  # Player Movement
             ply = self.controller.player_ids[struct.unpack("H", packet[:2])[0]]
             ply.momentum = struct.unpack("fff", packet[2:14])
-            ply.position = struct.unpack("ddd", packet[14:])
+            ply.position = struct.unpack("ddd", packet[14:38])
+            ply.rotation = struct.unpack("ff", packet[38:46])
         elif packetid == 9:  # Player Jump
             self.controller.player_ids[struct.unpack("H", packet)[0]].dy = 0.016
         elif packetid == 10: # Update Tile Entity
@@ -180,8 +184,8 @@ class PacketReceiver(Thread):
             else:
                 packet += b"\0\0\0\0"
         self.sock.sendall(b"\6"+packet)
-    def send_movement(self, momentum, position):
-        self.sock.sendall(b"\x08"+struct.pack("fff", *momentum) + struct.pack("ddd", *position))
+    def send_movement(self, momentum: fVector, position, rotation: fVector2):
+        self.sock.sendall(b"\x08" + struct.pack("fff", *momentum) + struct.pack("ddd", *position) + struct.pack("ff", *rotation))
     def send_jump(self):
         self.sock.sendall(b"\x09")
     def update_tile_entity(self, position, value):
