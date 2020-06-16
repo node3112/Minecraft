@@ -171,6 +171,22 @@ class BlockID:
     def __ne__(self, other):
         return not (self == other)
 
+    def __lt__(self, other):
+        if isinstance(other, float):
+            return float(repr(self)) < other
+        if isinstance(other, int):
+            return self.main < other
+        if isinstance(other, BlockID):
+            return float(repr(self)) < float(repr(other))
+
+    def __gt__(self, other):
+        if isinstance(other, float):
+            return float(repr(self)) > other
+        if isinstance(other, int):
+            return self.main > other
+        if isinstance(other, BlockID):
+            return float(repr(self)) > float(repr(other))
+
     def __bool__(self):
         """Checks whether it is an AirBlock."""
         return self.main != 0
